@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/" Id="02ea681e-c7d8-13c7-8484-4ac65e1b71e8">
+    <Project Path="src/Ample.Uuids/Ample.Uuids.csproj" Id="72e74cd2-b285-478f-a8e0-8cd146a6e568" />
+  </Folder>
+  <Folder Name="/tests/" Id="04ed98e6-3653-4f36-ab26-ead7c53ac5d9">
+    <Project Path="tests/Amlple.Uuids.Tests/Amlple.Uuids.Tests.csproj" Id="3cc470ba-c755-2df5-5206-ce793db2e50c" />
+  </Folder>
+</Solution>
