@@ -1,1 +1,8 @@
-<Solution />
+<Solution>
+  <Folder Name="/src/" Id="abd0d3d5-8d04-4959-9613-da7a492b79d2">
+    <Project Path="src/Ample.Core/Ample.Core.csproj" Id="83e04680-c1d1-47f3-afa2-0cc6acfdc8d4" />
+  </Folder>
+  <Folder Name="/tests/" Id="02ea681e-c7d8-13c7-8484-4ac65e1b71e8">
+    <Project Path="tests/Ample.Core.Tests/Ample.Core.Tests.csproj" Id="dc9d1093-8e7f-4d5e-96b8-8497ea9ba152" />
+  </Folder>
+</Solution>
