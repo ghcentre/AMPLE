@@ -7,33 +7,43 @@ public class MaybeNull_Tests
     #region Map(source, func)
 
     [Fact]
-    public void Map_NullSource_ReturnsNull()
+    public void Map_ReferenceSourceIsNull_ReturnsNull()
     {
         string? source = null;
-        var result = source.Map(s => s.ToUpper());
+        var result = source.Map(s => s?.ToUpper());
         result.ShouldBeNull();
     }
 
     [Fact]
-    public void Map_NullSource_DoesNotThrowIfNullMapper()
-    {
-        string? source = null;
-        var action = () => source.Map((Func<string, string?>)null!);
-        action.ShouldNotThrow();
-    }
-
-    [Fact]
-    public void Map_NotNullSourceNullMapper_Throws()
+    public void Map_ReferenceSourceIsNotNull_ReturnsMappedValue()
     {
         string source = "test";
-        var action = () => source.Map((Func<string, string?>)null!);
-        action.ShouldThrow<ArgumentNullException>();
+        var result = source.Map(s => s.ToUpper());
+        result.ShouldBe("TEST");
+    }
+
+    [Theory]
+    [InlineData(default(int), 1)]
+    [InlineData(42, 43)]
+    public void Map_ValueSource_AlwaysReturnsMapped(int source, int mapped)
+    {
+        var result = source.Map(s => s + 1);
+        result.ShouldBe(mapped);
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData(42, 43)]
+    public void Map_NullableValueSource_ReturnsNullIfNull(int? source, int? mapped)
+    {
+        var result = source.Map(s => s + 1);
+        result.ShouldBe(mapped);
     }
 
     [Theory]
     [InlineData(null, 0)]
     [InlineData("test", 1)]
-    public void Map_CountInvocations(string? source, int expectedInvocations)
+    public void Map_ReferenceSource_CountInvocations(string? source, int expectedInvocations)
     {
         int actualInvocations = 0;
         string? result = source.Map(
@@ -45,20 +55,34 @@ public class MaybeNull_Tests
         actualInvocations.ShouldBe(expectedInvocations);
     }
 
-    [Fact]
-    public void Map_SourceIsNull_ReturnsDefault()
+    [Theory]
+    [InlineData(default(int), 1)]
+    [InlineData(42, 1)]
+    public void Map_ValueSource_CountInvocations(int source, int expectedInvocations)
     {
-        string? source = null;
-        var result = source.Map(s => s.ToUpper());
-        result.ShouldBeNull();
+        int actualInvocations = 0;
+        var result = source.Map(
+            s =>
+            {
+                actualInvocations++;
+                return s;
+            });
+        actualInvocations.ShouldBe(expectedInvocations);
     }
 
-    [Fact]
-    public void Map_SourceIsNotNull_ReturnsMappedValue()
+    [Theory]
+    [InlineData(null, 0)]
+    [InlineData(42, 1)]
+    public void Map_NullableValueSource_CountInvocations(int? source, int expectedInvocations)
     {
-        string source = "test";
-        var result = source.Map(s => s.ToUpper());
-        result.ShouldBe("TEST");
+        int actualInvocations = 0;
+        var result = source.Map(
+            s =>
+            {
+                actualInvocations++;
+                return s;
+            });
+        actualInvocations.ShouldBe(expectedInvocations);
     }
 
     #endregion
@@ -71,14 +95,6 @@ public class MaybeNull_Tests
         string? source = null;
         var result = source.Map(s => s.ToUpper(), () => "null string");
         result.ShouldBe("null string");
-    }
-
-    [Fact]
-    public void MapWithFallback_NullSource_DoesNotThrowIfNullMapper()
-    {
-        string? source = null;
-        var action = () => source.Map(null!, () => "null string");
-        action.ShouldNotThrow();
     }
 
     [Fact]
@@ -95,14 +111,6 @@ public class MaybeNull_Tests
         string source = "test";
         var action = () => source.Map(null!, () => "null string");
         action.ShouldThrow<ArgumentNullException>();
-    }
-
-    [Fact]
-    public void MapWithFallback_NotNullSource_DoesNotThrowIfNullFallback()
-    {
-        string source = "test";
-        var action = () => source.Map(s => s.ToUpper(), null!);
-        action.ShouldNotThrow();
     }
 
     [Theory]
@@ -152,14 +160,6 @@ public class MaybeNull_Tests
     {
         var result = source.Do(s => { });
         result.ShouldBeSameAs(source);
-    }
-
-    [Fact]
-    public void Do_NullSource_DoesNotThrowIfNullAction()
-    {
-        string? source = null;
-        var action = () => source.Do(null!);
-        action.ShouldNotThrow();
     }
 
     [Fact]
