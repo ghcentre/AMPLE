@@ -35,7 +35,7 @@ public static class GuidExtensions
         MemoryMarshal.TryWrite(guidBytes, guid);
 
         Span<char> resultChars = stackalloc char[CompactGuidConstants.CompactGuidStringLength];
-        Base64Url.TryEncodeToChars(guidBytes, resultChars, out int charsWritten);
+        Base64Url.TryEncodeToChars(guidBytes, resultChars, out _);
 
         return new string(resultChars);
     }
