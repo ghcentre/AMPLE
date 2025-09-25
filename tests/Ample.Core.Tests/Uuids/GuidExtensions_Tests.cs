@@ -59,4 +59,38 @@ public class GuidExtensions_Tests
             result.ShouldBe(sut);
         }
     }
+
+    [Fact]
+    public void ToCompactGuid_SequentialGuidsV7_CreatesSequentialResults()
+    {
+        var sut1 = Guid.CreateVersion7();
+        var sut2 = Guid.CreateVersion7();
+
+        var results = new[] { sut1.ToCompactString(), sut2.ToCompactString() };
+        var sorted = results.OrderBy(x => x).ToArray();
+
+        results.ShouldBe(sorted);
+    }
+
+    [Fact]
+    public void ToBase32String_Some_Converts()
+    {
+        var sut = Guid.Parse("01234567-89ab-cdef-0123-456789abcdef");
+        var result = sut.ToBase32String();
+        result.Length.ShouldBe(26);
+    }
+
+    [Fact]
+    public void ToBase32String_Sequential()
+    {
+        var sut1 = Guid.CreateVersion7();
+        var sut2 = Guid.CreateVersion7();
+        
+        var result1 = sut1.ToBase32String();
+        var result2 = sut2.ToBase32String();
+        var results = new[] { result1, result2 };
+        var sorted = results.OrderBy(x => x).ToArray();
+
+        results.ShouldBe(sorted);
+    }
 }

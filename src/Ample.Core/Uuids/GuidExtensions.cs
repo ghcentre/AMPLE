@@ -39,4 +39,62 @@ public static class GuidExtensions
 
         return new string(resultChars);
     }
+
+    public static string ToBase32String(this in Guid guid)
+    {
+        Span<byte> guidBytes = stackalloc byte[CompactGuidConstants.GuidByteArrayLength];
+        MemoryMarshal.TryWrite(guidBytes, guid);
+
+        Span<char> resultChars = stackalloc char[8 * 3 + 2];
+
+        for (int i = 0; i < 3; i++)
+        {
+            Span<byte> guidSlice = guidBytes.Slice(i * 5, 5);
+            Span<char> resultSlice = resultChars.Slice(i * 8, 8);
+            WriteBase32Chunk(guidSlice, resultSlice, out _);
+        }
+
+        WriteFinalChars(guidBytes[15], resultChars.Slice(3 * 8, 2), out _);
+
+        return new string(resultChars);
+    }
+    
+    const string _alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"; // Crockford BASE32
+
+    private static bool WriteBase32Chunk(Span<byte> bytes, Span<char> result, out int charsWritten)
+    {
+        ulong value = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            value |= (ulong)bytes[i] << (i * 8);
+        }
+        
+        charsWritten = 0;
+
+        for (int i = 7; i >= 0; i--)
+        {
+            int index = (int)(value % 32);
+            result[i] = _alphabet[index];
+
+            value /= 32;
+            charsWritten++;
+        }
+
+        return charsWritten == 8;
+    }
+
+    private static bool WriteFinalChars(byte byteValue, Span<char> result, out int charsWritten)
+    {
+        charsWritten = 0;
+
+        int value = (int)byteValue;
+        result[1] = _alphabet[value % 32];
+        charsWritten++;
+
+        value /= 32;
+        result[0] = _alphabet[value];
+        charsWritten++;
+
+        return charsWritten == 2;
+    }
 }
