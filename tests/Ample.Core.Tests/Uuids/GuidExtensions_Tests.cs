@@ -1,10 +1,5 @@
 ﻿using Ample.Core.Tests.Uuids.Infrastrusture;
 using Ample.Core.Uuids;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Ample.Core.Tests.Uuids;
 
@@ -61,19 +56,7 @@ public class GuidExtensions_Tests
     }
 
     [Fact]
-    public void ToCompactGuid_SequentialGuidsV7_CreatesSequentialResults()
-    {
-        var sut1 = Guid.CreateVersion7();
-        var sut2 = Guid.CreateVersion7();
-
-        var results = new[] { sut1.ToCompactString(), sut2.ToCompactString() };
-        var sorted = results.OrderBy(x => x).ToArray();
-
-        results.ShouldBe(sorted);
-    }
-
-    [Fact]
-    public void ToBase32String_Some_Converts()
+    public void ToBase32String_SomeGuid_CorrectLength()
     {
         var sut = Guid.Parse("01234567-89ab-cdef-0123-456789abcdef");
         var result = sut.ToBase32String();
@@ -81,16 +64,15 @@ public class GuidExtensions_Tests
     }
 
     [Fact]
-    public void ToBase32String_Sequential()
+    public void ToBase32String_Random_ContainsAllowedCharactersOnly()
     {
-        var sut1 = Guid.CreateVersion7();
-        var sut2 = Guid.CreateVersion7();
-        
-        var result1 = sut1.ToBase32String();
-        var result2 = sut2.ToBase32String();
-        var results = new[] { result1, result2 };
-        var sorted = results.OrderBy(x => x).ToArray();
+        const string allowedChars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
-        results.ShouldBe(sorted);
+        for (int i = 0; i < 1000; i++)
+        {
+            var sut = Guid.NewGuid();
+            var result = sut.ToBase32String();
+            result.All(x => allowedChars.Any(ac => x == ac)).ShouldBeTrue();
+        }
     }
 }

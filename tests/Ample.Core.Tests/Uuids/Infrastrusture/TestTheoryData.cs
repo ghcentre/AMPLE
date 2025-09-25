@@ -14,4 +14,13 @@ internal static class TestTheoryData
         { "e05a2248-d16b-4298-8c61-0c521ff6b353", "SCJa4GvRmEKMYQxSH_azUw" },
         { "fcd9ef74-0b32-47e6-a118-99ad7b11f86f", "dO_Z_DIL5kehGJmtexH4bw" }
     };
+
+    public static readonly string[] SequentialV7Guids =
+    [
+        "01997f91-e9db-74da-b3cc-3a3b5c36155b",
+        "01997f92-39b5-7a50-9760-c0bcc5bd62a8",
+        "01997f92-622c-7f25-8b01-b69229c8d50c",
+        "01997f92-9ed6-7f34-b947-d021d11d83de",
+        "01997f93-0888-7e0d-b28f-1e6f8978d7a6"
+    ];
 }
