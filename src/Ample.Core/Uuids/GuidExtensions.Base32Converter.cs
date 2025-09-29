@@ -5,13 +5,20 @@ public static partial class GuidExtensions
 {
     private static class Base32GuidConverter
     {
-        private static readonly char[] _crockfordAlphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ".ToCharArray(); // Crockford BASE32
+        //
+        // Crockford BASE32 alphabet
+        // 
+        private static readonly char[] _crockfordAlphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ".ToCharArray();
+        private static readonly int _crockfordAlphabetLength = _crockfordAlphabet.Length;
 
-        private const int _base32CharsInChunk = 8;
-        private const int _bytesInChunk = 5;
-        private const int _chunksInGuid = 3;
-        private const int _base32CharsInRemainder = 2;
+        private const int _base32CharsInChunk = 8;          // number of BASE32 charachers in a 40-bit chunk
+        private const int _bytesInChunk = 5;                // number of 8-bit bytes in a 40-bit chunk
+        private const int _chunksInGuid = 3;                // number of chunks in a GUID
+        private const int _base32CharsInRemainder = 2;      // numver of BASE32 charachers in a 'remainder'
        
+        //
+        // BASE32 GUID representation length
+        //
         public const int GuidBase32CharLength = _base32CharsInChunk * _chunksInGuid + _base32CharsInRemainder;
 
         internal static bool WriteBase32Chars(in ReadOnlySpan<byte> guidBytes, in Span<char> resultChars, out int charsWritten)
@@ -39,23 +46,23 @@ public static partial class GuidExtensions
         private static bool WriteBase32Chunk(in ReadOnlySpan<byte> bytes, in Span<char> result, out int charsWritten)
         {
             ulong value = 0;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < _bytesInChunk; i++)
             {
-                value |= (ulong)bytes[i] << (i * 8);
+                value |= (ulong)bytes[i] << (i * _base32CharsInChunk);
             }
 
             charsWritten = 0;
 
-            for (int i = 7; i >= 0; i--)
+            for (int i = _base32CharsInChunk - 1; i >= 0; i--)
             {
-                int index = (int)(value % 32);
+                int index = (int)(value % (ulong)_crockfordAlphabetLength);
                 result[i] = _crockfordAlphabet[index];
 
-                value /= 32;
+                value /= (ulong)_crockfordAlphabetLength;
                 charsWritten++;
             }
 
-            return charsWritten == 8;
+            return charsWritten == _base32CharsInChunk;
         }
 
         private static bool WriteFinalChars(byte byteValue, in Span<char> result, out int charsWritten)
@@ -63,14 +70,14 @@ public static partial class GuidExtensions
             charsWritten = 0;
 
             int value = byteValue;
-            result[1] = _crockfordAlphabet[value % 32];
+            result[1] = _crockfordAlphabet[value % _crockfordAlphabetLength];
             charsWritten++;
 
-            value /= 32;
+            value /= _crockfordAlphabetLength;
             result[0] = _crockfordAlphabet[value];
             charsWritten++;
 
-            return charsWritten == 2;
+            return charsWritten == _base32CharsInRemainder;
         }
     }
 }
