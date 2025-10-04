@@ -93,7 +93,7 @@ public class MaybeNull_Tests
     public void MapWithFallback_NullSource_ReturnsFallback()
     {
         string? source = null;
-        var result = source.Map(s => s.ToUpper(), () => "null string");
+        var result = source!.Map(s => s.ToUpper(), () => "null string");
         result.ShouldBe("null string");
     }
 
@@ -101,7 +101,7 @@ public class MaybeNull_Tests
     public void MapWithFallback_NullSource_ThrowsIfNullFallback()
     {
         string? source = null;
-        var action = () => source.Map(s => s.ToUpper(), null!);
+        var action = () => source!.Map(s => s.ToUpper(), null!);
         action.ShouldThrow<ArgumentNullException>();
     }
 
