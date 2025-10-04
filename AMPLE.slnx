@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/src/" Id="abd0d3d5-8d04-4959-9613-da7a492b79d2">
     <Project Path="src/Ample.Core/Ample.Core.csproj" Id="83e04680-c1d1-47f3-afa2-0cc6acfdc8d4" />
   </Folder>
