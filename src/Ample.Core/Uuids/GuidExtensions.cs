@@ -3,6 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace Ample.Core.Uuids;
 
+/// <summary>
+/// Contains extension methods for the <see cref="Guid"/> struct.
+/// </summary>
 public static partial class GuidExtensions
 {
     /// <summary>
@@ -25,7 +28,7 @@ public static partial class GuidExtensions
     /// <example>
     /// <code>
     /// var guid = new Guid(Enumerable.Range(0, 16).Select(x => (byte)x).ToArray()); // {03020100-0504-0706-0809-0a0b0c0d0e0f}
-    /// string compactString = guid.ToCompactString(); // 0G1G40801440E1G51R6GR2RA0F
+    /// string compactString = guid.ToCompactString(); // AAECAwQFBgcICQoLDA0ODw
     /// </code>
     /// <seealso cref="CompactGuid.Parse(ReadOnlySpan{char})"></seealso>
     /// </example>
@@ -48,7 +51,7 @@ public static partial class GuidExtensions
     /// <example>
     /// <code>
     /// var guid = new Guid(Enumerable.Range(0, 16).Select(x => (byte)x).ToArray()); // {03020100-0504-0706-0809-0a0b0c0d0e0f}
-    /// string base32String = guid.ToBase32String(); // AAECAwQFBgcICQoLDA0ODw
+    /// string base32String = guid.ToBase32String(); // 0G1G40801440E1G51R6GR2RA0F
     /// </code>
     /// <seealso cref="CompactGuid.Parse(ReadOnlySpan{char})"></seealso>
     /// </example>
