@@ -2,6 +2,10 @@
 
 namespace Ample.Core.Uuids;
 
+/// <summary>
+/// Contains <see langword="static"/> methods for converting the compact string representation of a GUID
+/// to the equivalent <see cref="Guid"/> structure.
+/// </summary>
 public static class CompactGuid
 {
     /// <summary>
@@ -38,10 +42,9 @@ public static class CompactGuid
     /// Converts the compact string representation of a GUID to the equivalent <see cref="Guid"/> structure.
     /// </summary>
     /// <param name="stringValue">The string to convert.</param>
-    /// <returns>A structure that contains the value that was parsed.</returns>
-    /// <exception cref="ArgumentNullException">Input is <see langword="null"/>.</exception>
-    /// <exception cref="FormatException">Input is not in a recognized format.</exception>
-    public static Guid Parse(ReadOnlySpan<char> stringValue)
+    /// <returns>A <see cref="Guid"/> structure that contains the value that was parsed.</returns>
+    /// <exception cref="FormatException">Input is <see langword="null"/> not in a recognized format.</exception>
+    public static Guid Parse(in ReadOnlySpan<char> stringValue)
     {
         if (TryParse(stringValue, out var guid))
         {
