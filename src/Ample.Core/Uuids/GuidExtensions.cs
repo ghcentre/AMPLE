@@ -3,6 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace Ample.Core.Uuids;
 
+/// <summary>
+/// Contains a set of <see langword="static"/> methods to convert <see cref="Guid"/> to its
+/// compact (BASE64) or BASE32 repsesentation.
+/// </summary>
 public static partial class GuidExtensions
 {
     /// <summary>
