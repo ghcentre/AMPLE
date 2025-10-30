@@ -2,6 +2,13 @@
 
 namespace Ample.Core.MaybeNull;
 
+/// <summary>
+/// Provides extension methods for safely operating on potentially null values using functional-style patterns.
+/// </summary>
+/// <remarks>These methods enable fluent handling of nullable values, allowing mapping, conditional execution, and
+/// filtering without explicit null checks. They are particularly useful for scenarios where null values are common and
+/// you want to avoid repetitive null-checking logic. All methods are static and intended to be used as extension
+/// methods on reference or nullable value types.</remarks>
 public static class MaybeNullExtensions
 {
     [return: MaybeNull]

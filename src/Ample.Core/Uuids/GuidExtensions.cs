@@ -23,7 +23,7 @@ public static partial class GuidExtensions
     ///     <item>(RFC 3548, par. 4).</item>
     ///     <item>(RFC 1575, appendix C)</item>
     /// </list>
-    /// <para>See <see cref="CompactGuid.Parse(ReadOnlySpan{char})"/> to convert the compact GUID representation
+    /// <para>See <see cref="CompactGuid.Parse(in ReadOnlySpan{char})"/> to convert the compact GUID representation
     /// to the <see cref="Guid"/> value.</para>
     /// </remarks>
     /// <example>
@@ -31,7 +31,7 @@ public static partial class GuidExtensions
     /// var guid = new Guid(Enumerable.Range(0, 16).Select(x => (byte)x).ToArray()); // {03020100-0504-0706-0809-0a0b0c0d0e0f}
     /// string compactString = guid.ToCompactString(); // AAECAwQFBgcICQoLDA0ODw
     /// </code>
-    /// <seealso cref="CompactGuid.Parse(ReadOnlySpan{char})"></seealso>
+    /// <seealso cref="CompactGuid.Parse(in ReadOnlySpan{char})"></seealso>
     /// </example>
     public static string ToCompactString(this in Guid guid)
     {
@@ -54,7 +54,6 @@ public static partial class GuidExtensions
     /// var guid = new Guid(Enumerable.Range(0, 16).Select(x => (byte)x).ToArray()); // {03020100-0504-0706-0809-0a0b0c0d0e0f}
     /// string base32String = guid.ToBase32String(); // 0G1G40801440E1G51R6GR2RA0F
     /// </code>
-    /// <seealso cref="CompactGuid.Parse(ReadOnlySpan{char})"></seealso>
     /// </example>
     public static string ToBase32String(this in Guid guid)
     {
