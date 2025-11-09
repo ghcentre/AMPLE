@@ -1,6 +1,6 @@
-﻿using Ample.Core.MaybeNull;
+﻿using Ample.Core.Nullables;
 
-namespace Ample.Core.Tests.MaybeNull;
+namespace Ample.Core.Tests.Nullables;
 
 public class MaybeNull_Tests
 {

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Ample.Core.MaybeNull;
+namespace Ample.Core.Nullables;
 
 /// <summary>
 /// Provides extension methods for safely operating on potentially null values using functional-style patterns.
