@@ -53,6 +53,6 @@ public static class EmptyToNullExtensions
     /// enumerated multiple times.</remarks>
     public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this IEnumerable<T>? source)
     {
-        return source == null || !source.Any();
+        return source is null || !source.Any();
     }
 }
