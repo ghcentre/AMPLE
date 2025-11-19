@@ -48,7 +48,7 @@ public static class EmptyToNullExtensions
     /// </summary>
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
     /// <param name="source">The sequence to check for nullity or emptiness.</param>
-    /// <returns>true if the sequence is null or contains no elements; otherwise, false.</returns>
+    /// <returns><see langword="true"/> if the sequence is null or contains no elements; otherwise, <see langword="false"/>.</returns>
     /// <remarks>The method assumes the collection in <paramref name="source"/> can be <b>safely</b>
     /// enumerated multiple times.</remarks>
     public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this IEnumerable<T>? source)

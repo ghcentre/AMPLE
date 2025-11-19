@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Ample.Core.GuardClauses;
 
 /// <summary>
-/// Provides extension methods for guarding against null arguments in method calls.
+/// Provides extension methods for guarding against <see langword="null"/> arguments in method calls.
 /// </summary>
 public static class GuardAgainstNullExtensions
 {
