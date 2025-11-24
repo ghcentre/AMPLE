@@ -11,6 +11,20 @@ namespace Ample.Core.Nullables;
 /// methods on reference or nullable value types.</remarks>
 public static class MaybeNullExtensions
 {
+    /// <summary>
+    /// Maps (projects) one object to another if the source object is not <see langword="null"/>. 
+    /// </summary>
+    /// <typeparam name="TSource">The type of the <paramref name="source"/></typeparam>
+    /// <typeparam name="TResult">The type of the result</typeparam>
+    /// <param name="source">The object to map. The object can be <see langword="null"/>.</param>
+    /// <param name="mapper">The mapper delegate which maps the source to the result.
+    /// The delegate has the <see cref="Func{TSource, TResult}"/> type. This parameter cannot be <see langword="null"/>.</param>
+    /// <returns>If the object specified in <paramref name="source"/> is <see langword="null"/>,
+    /// the method returns the default value for the <typeparamref name="TResult"/> type.
+    /// Otherwise, the method returns the result of <paramref name="mapper"/> invocation on the <paramref name="source"/>
+    /// object.</returns>
+    /// <remarks>For value types, the method always invokes <paramref name="mapper"/> delegate
+    /// on the <paramref name="source"/> object.</remarks>
     [return: MaybeNull]
     public static TResult Map<TSource, TResult>([MaybeNull] this TSource source, Func<TSource, TResult> mapper)
     {
