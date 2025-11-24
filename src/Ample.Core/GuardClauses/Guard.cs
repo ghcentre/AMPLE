@@ -13,5 +13,5 @@ public static class Guard
     /// <summary>
     /// Private implementation of the <see cref="IGuard"/> interface.
     /// </summary>
-    private class GuardClauseImplementation : IGuard;
+    private sealed class GuardClauseImplementation : IGuard;
 }
