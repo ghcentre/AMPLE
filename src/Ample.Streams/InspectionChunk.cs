@@ -20,5 +20,5 @@ public class InspectionChunk(Direction direction, byte[] data) : IInspectionChun
         }
     }
 
-    public byte[] Data { get; } = Utils.ThrowIfNullOrEmpty(data);
+    public byte[] Data { get; } = Utils.ThrowIfNullOrEmptyBuffer(data);
 }

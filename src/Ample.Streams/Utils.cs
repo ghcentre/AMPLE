@@ -2,7 +2,7 @@
 
 internal static class Utils
 {
-    public static byte[] ThrowIfNullOrEmpty(byte[] data)
+    public static byte[] ThrowIfNullOrEmptyBuffer(byte[] data)
     {
         ArgumentNullException.ThrowIfNull(data);
 

@@ -21,8 +21,8 @@ public class StreamForwarder : IStreamForwarder
     {
         ArgumentNullException.ThrowIfNull(clientStream);
         ArgumentNullException.ThrowIfNull(serverStream);
-        Utils.ThrowIfNullOrEmpty(clientBuffer);
-        Utils.ThrowIfNullOrEmpty(serverBuffer);
+        Utils.ThrowIfNullOrEmptyBuffer(clientBuffer);
+        Utils.ThrowIfNullOrEmptyBuffer(serverBuffer);
         ArgumentNullException.ThrowIfNull(inspector);
 
         if (cancellationToken.IsCancellationRequested)
