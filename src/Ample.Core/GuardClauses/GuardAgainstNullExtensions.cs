@@ -20,7 +20,7 @@ public static class GuardAgainstNullExtensions
     /// This parameter is optional.</param>
     /// <returns>The validated argument if it is not <see langword="null"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="argument"/> is <see langword="null"/>.</exception>
-    public static T? Null<T>(
+    public static T Null<T>(
         this IGuard guard,
         [NotNull] T? argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null)
