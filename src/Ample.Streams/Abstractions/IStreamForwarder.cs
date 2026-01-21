@@ -1,6 +1,6 @@
 ﻿namespace Ample.Streams.Abstractions;
 
-internal interface IStreamForwarder
+public interface IStreamForwarder
 {
     Task<long> ForwardBidirectionalAsync(
         Stream clientStream,
