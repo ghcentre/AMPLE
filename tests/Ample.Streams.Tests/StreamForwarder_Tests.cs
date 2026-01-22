@@ -20,6 +20,7 @@ public class StreamForwarder_Tests
         var sut = new StreamForwarder();
         await Should.ThrowAsync<ArgumentException>(
             () => sut.ForwardBidirectionalAsync(
+                "TestSession",
                 new MemoryStream(),
                 new MemoryStream(),
                 [],
@@ -28,6 +29,7 @@ public class StreamForwarder_Tests
                 CancellationToken.None));
         await Should.ThrowAsync<ArgumentException>(
             () => sut.ForwardBidirectionalAsync(
+                "TestSession",
                 new MemoryStream(),
                 new MemoryStream(),
                 new byte[2048],
@@ -45,7 +47,8 @@ public class StreamForwarder_Tests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var result = await sut.ForwardBidirectionalAsync(
+        await sut.ForwardBidirectionalAsync(
+            "TestSession",
             client,
             server,
             new byte[2048],
@@ -72,7 +75,8 @@ public class StreamForwarder_Tests
         var server = new MemoryStream();
         var cts = new CancellationTokenSource();
 
-        var result = await sut.ForwardBidirectionalAsync(
+        await sut.ForwardBidirectionalAsync(
+            "TestSession",
             client,
             server,
             new byte[16384],
@@ -82,7 +86,7 @@ public class StreamForwarder_Tests
         
         var serverBuffer = server.ToArray();
 
-        result.ShouldBe(bufferSize);
+        sut.ClientToServerBytesTransferred.ShouldBe(bufferSize);
         serverBuffer.ShouldBe(clientBuffer);
     }
 
@@ -101,7 +105,8 @@ public class StreamForwarder_Tests
         var server = new MemoryStream(serverBuffer);
         var cts = new CancellationTokenSource();
 
-        var result = await sut.ForwardBidirectionalAsync(
+        await sut.ForwardBidirectionalAsync(
+            "TestSession",
             client,
             server,
             new byte[16384],
@@ -111,7 +116,7 @@ public class StreamForwarder_Tests
         
         var clientBuffer = client.ToArray();
 
-        result.ShouldBe(bufferSize);
+        sut.ServerToClientBytesTransferred.ShouldBe(bufferSize);
         clientBuffer.ShouldBe(serverBuffer);
     }
 
@@ -123,6 +128,7 @@ public class StreamForwarder_Tests
     public async Task Forward_TokenCancelled_Returns(int serverSize, int clientSize)
     {
         // arrange
+        var sessionId = "TestSession";
         var clientStream = new BlockingStream(clientSize);
         var serverStream = new BlockingStream(serverSize);
         var clientBuffer = new byte[16384];
@@ -130,13 +136,14 @@ public class StreamForwarder_Tests
         var cts = new CancellationTokenSource(500);
         var sut = new StreamForwarder();
 
-        var task = sut.ForwardBidirectionalAsync(clientStream, serverStream, clientBuffer, serverBuffer, Inspector.Default, cts.Token);
+        var task = sut.ForwardBidirectionalAsync(sessionId, clientStream, serverStream, clientBuffer, serverBuffer, Inspector.Default, cts.Token);
         await Task.Delay(1000);
 
-        long transfered = task.GetAwaiter().GetResult();
+        task.GetAwaiter().GetResult();
 
         task.IsCompleted.ShouldBeTrue();
-        transfered.ShouldBe(clientSize + serverSize);
+        sut.ClientToServerBytesTransferred.ShouldBe(clientSize);
+        sut.ServerToClientBytesTransferred.ShouldBe(serverSize);
     }
 
     [Theory]
@@ -159,15 +166,16 @@ public class StreamForwarder_Tests
             });
         var sut = new StreamForwarder();
 
-        long transfered = await sut.ForwardBidirectionalAsync(
+        await sut.ForwardBidirectionalAsync(
+            "TestSession",
             clientStream,
             serverStream,
             new byte[2048],
             new byte[2048],
             inspector,
             CancellationToken.None);
-        
-        transfered.ShouldBe(buffersize);
+
+        sut.ClientToServerBytesTransferred.ShouldBe(buffersize);
         collectedInInspector.ShouldBe(buffersize);
     }
 
@@ -191,7 +199,8 @@ public class StreamForwarder_Tests
             });
         var sut = new StreamForwarder();
 
-        long transfered = await sut.ForwardBidirectionalAsync(
+        await sut.ForwardBidirectionalAsync(
+            "TestSession",
             clientStream,
             serverStream,
             new byte[2048],
@@ -199,7 +208,7 @@ public class StreamForwarder_Tests
             inspector,
             CancellationToken.None);
 
-        transfered.ShouldBe(buffersize);
+        sut.ServerToClientBytesTransferred.ShouldBe(buffersize);
         collectedInInspector.ShouldBe(buffersize);
     }
 }

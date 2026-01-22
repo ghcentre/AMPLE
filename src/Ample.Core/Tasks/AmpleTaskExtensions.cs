@@ -5,7 +5,6 @@ public static class AmpleTaskExtensions
     public static Task<bool> DelaySafe(TimeSpan timeout, CancellationToken cancellationToken)
     {
         var tcs = new TaskCompletionSource<bool>();
-        var task = tcs.Task;
 
         Task.Factory.StartNew(
             () =>
@@ -15,6 +14,6 @@ public static class AmpleTaskExtensions
             },
             CancellationToken.None);
 
-        return task;
+        return tcs.Task;
     }
 }
