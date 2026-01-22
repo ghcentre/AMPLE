@@ -2,7 +2,12 @@
 
 public interface IStreamForwarder
 {
-    Task<long> ForwardBidirectionalAsync(
+    long ClientToServerBytesTransferred { get; }
+    
+    long ServerToClientBytesTransferred { get; }
+
+    Task ForwardBidirectionalAsync(
+        string sessionId,
         Stream clientStream,
         Stream serverStream,
         byte[] clientBuffer,

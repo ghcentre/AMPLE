@@ -3,8 +3,10 @@ using Ample.Streams.Abstractions;
 
 namespace Ample.Streams;
 
-public class InspectionChunk(Direction direction, byte[] data) : IInspectionChunk
+public class InspectionChunk(string sessionId, Direction direction, byte[] data) : IInspectionChunk
 {
+    public string SessionId { get; } = Guard.Against.NullOrWhiteSpace(sessionId);
+    
     public Direction Direction { get; } = direction;
 
     public ulong Serial { get; set; }

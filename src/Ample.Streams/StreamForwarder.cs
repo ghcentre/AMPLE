@@ -1,17 +1,21 @@
 ﻿using Ample.Streams.Abstractions;
 using Ample.Streams.Exceptions;
-using System.Threading;
 
 namespace Ample.Streams;
 
 public class StreamForwarder : IStreamForwarder
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly object _locker = new();
 
-    private long _bytesTransfered = 0;
+    private long _clientToServerBytesTransferred = 0;
+    private long _serverToClientBytesTransferred = 0;
 
-    public async Task<long> ForwardBidirectionalAsync(
+    public long ClientToServerBytesTransferred => Interlocked.Read(ref _clientToServerBytesTransferred);
+
+    public long ServerToClientBytesTransferred => Interlocked.Read(ref _serverToClientBytesTransferred);
+
+    public async Task ForwardBidirectionalAsync(
+        string sessionId,
         Stream clientStream,
         Stream serverStream,
         byte[] clientBuffer,
@@ -19,15 +23,19 @@ public class StreamForwarder : IStreamForwarder
         IInspector inspector,
         CancellationToken cancellationToken)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         ArgumentNullException.ThrowIfNull(clientStream);
         ArgumentNullException.ThrowIfNull(serverStream);
         Utils.ThrowIfNullOrEmptyBuffer(clientBuffer);
         Utils.ThrowIfNullOrEmptyBuffer(serverBuffer);
         ArgumentNullException.ThrowIfNull(inspector);
 
+        Interlocked.Exchange(ref _clientToServerBytesTransferred, 0);
+        Interlocked.Exchange(ref _serverToClientBytesTransferred, 0);
+
         if (cancellationToken.IsCancellationRequested)
         {
-            return 0;
+            return;
         }
 
         if (!await _semaphore.WaitAsync(0, cancellationToken))
@@ -37,13 +45,19 @@ public class StreamForwarder : IStreamForwarder
 
         try
         {
-            _bytesTransfered = 0;
             if (cancellationToken.IsCancellationRequested)
             {
-                return _bytesTransfered;
+                return;
             }
 
-            return await DoForwardingAsync(clientStream, serverStream, clientBuffer, serverBuffer, inspector, cancellationToken);
+            await DoForwardingAsync(
+                sessionId,
+                clientStream,
+                serverStream,
+                clientBuffer,
+                serverBuffer,
+                inspector,
+                cancellationToken);
         }
         finally
         {
@@ -51,7 +65,8 @@ public class StreamForwarder : IStreamForwarder
         }
     }
 
-    private async Task<long> DoForwardingAsync(
+    private async Task DoForwardingAsync(
+        string sessionId,
         Stream clientStream,
         Stream serverStream,
         byte[] clientBuffer,
@@ -59,12 +74,12 @@ public class StreamForwarder : IStreamForwarder
         IInspector inspector,
         CancellationToken cancellationToken)
     {
-        var clientChunk = new InspectionChunk(Direction.ClientToServer, clientBuffer);
+        var clientChunk = new InspectionChunk(sessionId, Direction.ClientToServer, clientBuffer);
         var clientState = new StreamState(clientChunk);
 
-        var serverChunk = new InspectionChunk(Direction.ServerToClient, serverBuffer);
+        var serverChunk = new InspectionChunk(sessionId, Direction.ServerToClient, serverBuffer);
         var serverState = new StreamState(serverChunk);
-        
+
         Task? clientToServerTask = null;
         Task? serverToClientTask = null;
 
@@ -72,7 +87,7 @@ public class StreamForwarder : IStreamForwarder
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return _bytesTransfered;
+                return;
             }
 
             if (clientToServerTask == null || clientToServerTask.IsCompleted)
@@ -103,7 +118,7 @@ public class StreamForwarder : IStreamForwarder
                             serverStream,
                             clientState.Chunk.Data,
                             clientState.Chunk.Length,
-                            () => Interlocked.Add(ref _bytesTransfered, clientState.Chunk.Length),
+                            () => Interlocked.Add(ref _clientToServerBytesTransferred, clientState.Chunk.Length),
                             cancellationToken);
                         clientState.ResetChunk();
                         break;
@@ -127,7 +142,7 @@ public class StreamForwarder : IStreamForwarder
                             clientStream,
                             serverState.Chunk.Data,
                             serverState.Chunk.Length,
-                            () => Interlocked.Add(ref _bytesTransfered, serverState.Chunk.Length),
+                            () => Interlocked.Add(ref _serverToClientBytesTransferred, serverState.Chunk.Length),
                             cancellationToken);
                         serverState.ResetChunk();
                         break;
@@ -141,8 +156,6 @@ public class StreamForwarder : IStreamForwarder
                 }
             }
         }
-
-        return _bytesTransfered;
     }
 
     private static async Task ReadFromStreamAsync(Stream stream, StreamState streamState, CancellationToken cancellationToken)
@@ -160,7 +173,7 @@ public class StreamForwarder : IStreamForwarder
         }
     }
 
-    private async Task WriteToAnotherStreamAsync(
+    private static async Task WriteToAnotherStreamAsync(
         Stream anotherStream,
         byte[] buffer,
         int count,
@@ -173,7 +186,7 @@ public class StreamForwarder : IStreamForwarder
         incrementTransfered();
     }
 
-    private async Task ThrowIfErrorAsync(Operation operation, Side side, Func<Task> func)
+    private static async Task ThrowIfErrorAsync(Operation operation, Side side, Func<Task> func)
     {
         try
         {

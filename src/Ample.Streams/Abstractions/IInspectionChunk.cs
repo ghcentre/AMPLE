@@ -2,7 +2,12 @@
 
 public interface IInspectionChunk
 {
-    // <summary>
+    /// <summary>
+    /// Session Id.
+    /// </summary>
+    string SessionId { get; }
+
+    /// <summary>
     /// Data flow direction.
     /// </summary>
     Direction Direction { get; }
