@@ -114,12 +114,15 @@ public class StreamForwarder : IStreamForwarder
                 switch (clientInspectionResult)
                 {
                     case InspectionResult.Continue:
-                        await WriteToAnotherStreamAsync(
-                            serverStream,
-                            clientState.Chunk.Data,
-                            clientState.Chunk.Length,
-                            () => Interlocked.Add(ref _clientToServerBytesTransferred, clientState.Chunk.Length),
-                            cancellationToken);
+                        await ThrowIfErrorAsync(
+                            Operation.Write,
+                            Side.Client,
+                            async () => await WriteToAnotherStreamAsync(
+                                serverStream,
+                                clientState.Chunk.Data,
+                                clientState.Chunk.Length,
+                                () => Interlocked.Add(ref _clientToServerBytesTransferred, clientState.Chunk.Length),
+                                cancellationToken));
                         clientState.ResetChunk();
                         break;
 
@@ -138,12 +141,15 @@ public class StreamForwarder : IStreamForwarder
                 switch (serverInspectionResult)
                 {
                     case InspectionResult.Continue:
-                        await WriteToAnotherStreamAsync(
-                            clientStream,
-                            serverState.Chunk.Data,
-                            serverState.Chunk.Length,
-                            () => Interlocked.Add(ref _serverToClientBytesTransferred, serverState.Chunk.Length),
-                            cancellationToken);
+                        await ThrowIfErrorAsync(
+                            Operation.Write,
+                            Side.Server,
+                            async () => await WriteToAnotherStreamAsync(
+                                clientStream,
+                                serverState.Chunk.Data,
+                                serverState.Chunk.Length,
+                                () => Interlocked.Add(ref _serverToClientBytesTransferred, serverState.Chunk.Length),
+                                cancellationToken));
                         serverState.ResetChunk();
                         break;
 
