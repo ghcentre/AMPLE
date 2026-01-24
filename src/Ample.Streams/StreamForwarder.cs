@@ -1,5 +1,6 @@
 ﻿using Ample.Streams.Abstractions;
 using Ample.Streams.Exceptions;
+using System.Threading;
 
 namespace Ample.Streams;
 
@@ -110,57 +111,77 @@ public class StreamForwarder : IStreamForwarder
 
             if (clientState.HasData)
             {
-                var clientInspectionResult = await inspector.InspectAsync(clientState.Chunk);
-                switch (clientInspectionResult)
-                {
-                    case InspectionResult.Continue:
-                        await ThrowIfErrorAsync(
-                            Operation.Write,
-                            Side.Client,
-                            async () => await WriteToAnotherStreamAsync(
-                                serverStream,
-                                clientState.Chunk.Data,
-                                clientState.Chunk.Length,
-                                () => Interlocked.Add(ref _clientToServerBytesTransferred, clientState.Chunk.Length),
-                                cancellationToken));
-                        clientState.ResetChunk();
-                        break;
-
-                    case InspectionResult.CollectMoreData:
-                        break;
-
-                    case InspectionResult.Discard:
-                        clientState.ResetChunk();
-                        break;
-                }
+                await HandleStreamStateData(
+                    inspector,
+                    clientState,
+                    Side.Client,
+                    clientStream,
+                    serverStream,
+                    x => Interlocked.Add(ref _serverToClientBytesTransferred, x),
+                    x => Interlocked.Add(ref _clientToServerBytesTransferred, x),
+                    cancellationToken);
             }
 
             if (serverState.HasData)
             {
-                var serverInspectionResult = await inspector.InspectAsync(serverState.Chunk);
-                switch (serverInspectionResult)
-                {
-                    case InspectionResult.Continue:
-                        await ThrowIfErrorAsync(
-                            Operation.Write,
-                            Side.Server,
-                            async () => await WriteToAnotherStreamAsync(
-                                clientStream,
-                                serverState.Chunk.Data,
-                                serverState.Chunk.Length,
-                                () => Interlocked.Add(ref _serverToClientBytesTransferred, serverState.Chunk.Length),
-                                cancellationToken));
-                        serverState.ResetChunk();
-                        break;
-
-                    case InspectionResult.CollectMoreData:
-                        break;
-
-                    case InspectionResult.Discard:
-                        serverState.ResetChunk();
-                        break;
-                }
+                await HandleStreamStateData(
+                    inspector,
+                    serverState,
+                    Side.Server,
+                    serverStream,
+                    clientStream,
+                    x => Interlocked.Add(ref _clientToServerBytesTransferred, x),
+                    x => Interlocked.Add(ref _serverToClientBytesTransferred, x),
+                    cancellationToken);
             }
+        }
+    }
+
+    private static async Task HandleStreamStateData(IInspector inspector,
+                                                    StreamState state,
+                                                    Side side,
+                                                    Stream associatedStream,
+                                                    Stream anotherStream,
+                                                    Action<int> associatedStreamTransferredBytesIncrement,
+                                                    Action<int> anotherStreamTransferredBytesIncrement,
+                                                    CancellationToken cancellationToken)
+    {
+        var serverInspectionResult = await inspector.InspectAsync(state.Chunk);
+
+        switch (serverInspectionResult)
+        {
+            case InspectionResult.Send:
+                await ThrowIfErrorAsync(
+                    Operation.Write,
+                    side,
+                    async () => await WriteToAnotherStreamAsync(
+                        anotherStream,
+                        state.Chunk.Data,
+                        state.Chunk.Length,
+                        () => anotherStreamTransferredBytesIncrement(state.Chunk.Length),
+                        cancellationToken));
+                state.ResetChunk();
+                break;
+
+            case InspectionResult.CollectMoreData:
+                break;
+
+            case InspectionResult.Discard:
+                state.ResetChunk();
+                break;
+
+            case InspectionResult.Reply:
+                await ThrowIfErrorAsync(
+                    Operation.Reply,
+                    Side.Server,
+                    async () => await WriteToAnotherStreamAsync(
+                        associatedStream,
+                        state.Chunk.Data,
+                        state.Chunk.Length,
+                        () => associatedStreamTransferredBytesIncrement(state.Chunk.Length),
+                        cancellationToken));
+                state.ResetChunk();
+                break;
         }
     }
 

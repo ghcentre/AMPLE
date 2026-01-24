@@ -162,7 +162,7 @@ public class StreamForwarder_Tests
                 chunk.Data.Length.ShouldBe(2048);
                 chunk.Length.ShouldBeLessThanOrEqualTo(2048);
                 collectedInInspector += chunk.Length;
-                return InspectionResult.Continue;
+                return InspectionResult.Send;
             });
         var sut = new StreamForwarder();
 
@@ -195,7 +195,7 @@ public class StreamForwarder_Tests
                 chunk.Data.Length.ShouldBe(2048);
                 chunk.Length.ShouldBeLessThanOrEqualTo(2048);
                 collectedInInspector += chunk.Length;
-                return InspectionResult.Continue;
+                return InspectionResult.Send;
             });
         var sut = new StreamForwarder();
 
