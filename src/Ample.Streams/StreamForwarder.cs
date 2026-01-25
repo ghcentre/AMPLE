@@ -1,6 +1,5 @@
 ﻿using Ample.Streams.Abstractions;
 using Ample.Streams.Exceptions;
-using System.Threading;
 
 namespace Ample.Streams;
 
@@ -15,14 +14,13 @@ public class StreamForwarder : IStreamForwarder
 
     public long ServerToClientBytesTransferred => Interlocked.Read(ref _serverToClientBytesTransferred);
 
-    public async Task ForwardBidirectionalAsync(
-        string sessionId,
-        Stream clientStream,
-        Stream serverStream,
-        byte[] clientBuffer,
-        byte[] serverBuffer,
-        IInspector inspector,
-        CancellationToken cancellationToken)
+    public async Task ForwardBidirectionalAsync(string sessionId,
+                                                Stream clientStream,
+                                                Stream serverStream,
+                                                byte[] clientBuffer,
+                                                byte[] serverBuffer,
+                                                IInspector inspector,
+                                                CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         ArgumentNullException.ThrowIfNull(clientStream);
@@ -66,14 +64,13 @@ public class StreamForwarder : IStreamForwarder
         }
     }
 
-    private async Task DoForwardingAsync(
-        string sessionId,
-        Stream clientStream,
-        Stream serverStream,
-        byte[] clientBuffer,
-        byte[] serverBuffer,
-        IInspector inspector,
-        CancellationToken cancellationToken)
+    private async Task DoForwardingAsync(string sessionId,
+                                         Stream clientStream,
+                                         Stream serverStream,
+                                         byte[] clientBuffer,
+                                         byte[] serverBuffer,
+                                         IInspector inspector,
+                                         CancellationToken cancellationToken)
     {
         var clientChunk = new InspectionChunk(sessionId, Direction.ClientToServer, clientBuffer);
         var clientState = new StreamState(clientChunk);
@@ -84,7 +81,7 @@ public class StreamForwarder : IStreamForwarder
         Task? clientToServerTask = null;
         Task? serverToClientTask = null;
 
-        while (!clientState.EndOfStream || !serverState.EndOfStream)
+        do
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -134,7 +131,7 @@ public class StreamForwarder : IStreamForwarder
                     x => Interlocked.Add(ref _serverToClientBytesTransferred, x),
                     cancellationToken);
             }
-        }
+        } while (!clientState.EndOfStream && !serverState.EndOfStream);
     }
 
     private static async Task HandleStreamStateData(IInspector inspector,
@@ -188,7 +185,9 @@ public class StreamForwarder : IStreamForwarder
     private static async Task ReadFromStreamAsync(Stream stream, StreamState streamState, CancellationToken cancellationToken)
     {
         var memory = streamState.Chunk.Data.AsMemory(streamState.Chunk.Length, streamState.Chunk.AvailableLength);
-        int bytesRead = await stream.ReadAsync(memory, cancellationToken);
+        int bytesRead = await stream.ReadAsync(memory, cancellationToken).AsTask();
+
+        //int bytesRead = await ReadFromStreamExperimentalAsync(stream, streamState.Chunk.Data, streamState.Chunk.Length, streamState.Chunk.AvailableLength, cancellationToken);
 
         if (bytesRead > 0)
         {

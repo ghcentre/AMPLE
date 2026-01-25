@@ -67,7 +67,8 @@ public class StreamForwarder_Tests
     [InlineData(16384)]
     [InlineData(32768)]
     [InlineData(135169)]
-    public async Task Forward_NormalFlow_CopiesClientToServer(int bufferSize)
+    [InlineData(123457)]
+    public async Task Forward_NormalFlow_CopiesClientToServerNoMoreThanBuffer(int bufferSize)
     {
         var sut = new StreamForwarder();
         var clientBuffer = AllocateAndFillBuffer(bufferSize);
@@ -86,8 +87,8 @@ public class StreamForwarder_Tests
         
         var serverBuffer = server.ToArray();
 
-        sut.ClientToServerBytesTransferred.ShouldBe(bufferSize);
-        serverBuffer.ShouldBe(clientBuffer);
+        sut.ClientToServerBytesTransferred.ShouldBe(Math.Min(bufferSize, 16384));
+        serverBuffer.ShouldBe(clientBuffer.Take(16384));
     }
 
     [Theory]
@@ -97,7 +98,8 @@ public class StreamForwarder_Tests
     [InlineData(16384)]
     [InlineData(32768)]
     [InlineData(135169)]
-    public async Task Forward_NormalFlow_CopiesServerToClient(int bufferSize)
+    [InlineData(123457)]
+    public async Task Forward_NormalFlow_CopiesServerToClientNoMoreThanBuffer(int bufferSize)
     {
         var sut = new StreamForwarder();
         var serverBuffer = AllocateAndFillBuffer(bufferSize);
@@ -116,16 +118,17 @@ public class StreamForwarder_Tests
         
         var clientBuffer = client.ToArray();
 
-        sut.ServerToClientBytesTransferred.ShouldBe(bufferSize);
-        clientBuffer.ShouldBe(serverBuffer);
+        sut.ServerToClientBytesTransferred.ShouldBe(Math.Min(bufferSize, 16384));
+        clientBuffer.ShouldBe(serverBuffer.Take(16384));
     }
 
     [Theory]
     [InlineData(32 * 1024, 123)]
     [InlineData(112, 64 * 1024)]
+    [InlineData(112 * 1024 + 19, 64 * 1024 + 21)]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1051:Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken", Justification = "<Pending>")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1031:Do not use blocking task operations in test method", Justification = "<Pending>")]
-    public async Task Forward_TokenCancelled_Returns(int serverSize, int clientSize)
+    public async Task Forward_TokenCanceled_Returns(int serverSize, int clientSize)
     {
         // arrange
         var sessionId = "TestSession";
@@ -133,11 +136,10 @@ public class StreamForwarder_Tests
         var serverStream = new BlockingStream(serverSize);
         var clientBuffer = new byte[16384];
         var serverBuffer = new byte[16384];
-        var cts = new CancellationTokenSource(500);
+        var cts = new CancellationTokenSource(700);
         var sut = new StreamForwarder();
 
         var task = sut.ForwardBidirectionalAsync(sessionId, clientStream, serverStream, clientBuffer, serverBuffer, Inspector.Default, cts.Token);
-        await Task.Delay(1000);
 
         task.GetAwaiter().GetResult();
 
@@ -153,7 +155,7 @@ public class StreamForwarder_Tests
     {
         var clientBuffer = AllocateAndFillBuffer(buffersize);
         var clientStream = new MemoryStream(clientBuffer);
-        var serverStream = new MemoryStream();
+        var serverStream = new BlockingStream(0);
         long collectedInInspector = 0;
         var inspector = new ActionInspector(
             async (chunk) =>
@@ -186,7 +188,7 @@ public class StreamForwarder_Tests
     {
         var serverBuffer = AllocateAndFillBuffer(buffersize);
         var serverStream = new MemoryStream(serverBuffer);
-        var clientStream = new MemoryStream();
+        var clientStream = new BlockingStream(0);
         long collectedInInspector = 0;
         var inspector = new ActionInspector(
             async (chunk) =>

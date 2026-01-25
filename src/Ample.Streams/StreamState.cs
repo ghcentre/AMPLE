@@ -6,12 +6,18 @@ namespace Ample.Streams;
 
 internal class StreamState(IInspectionChunk chunk)
 {
-    private readonly ManualResetEvent _hasDataEvent = new(false);
+    private bool _hasData = false;
     private readonly Lock _locker = new();
 
     public IInspectionChunk Chunk { get; } = Guard.Against.Null(chunk);
 
-    public bool HasData => _hasDataEvent.WaitOne(0);
+    public bool HasData
+    {
+        get
+        {
+            return _hasData;
+        }
+    }
 
     public bool EndOfStream { get; set; } = false;
 
@@ -22,7 +28,7 @@ internal class StreamState(IInspectionChunk chunk)
             try
             {
                 Chunk.Length += bytesRead;
-                _hasDataEvent.Set();
+                _hasData = Chunk.Length > 0;
             }
             catch (ArgumentException excepton)
             {
@@ -37,7 +43,7 @@ internal class StreamState(IInspectionChunk chunk)
         {
             Chunk.Serial++;
             Chunk.Length = 0;
-            _hasDataEvent.Reset();
+            _hasData = false;
         }
     }
 }

@@ -1,14 +1,18 @@
 ﻿
 namespace Ample.Streams.Tests.TestInfrastructure;
 
-internal class BlockingStream(long initialSize) : Stream
+/// <summary>
+/// Allows to read up to <paramref name="initialSize"/> bytes, then blocks indefinitely.
+/// </summary>
+/// <param name="initialSize"></param>
+internal class BlockingStream(long capacity) : Stream
 {
-    private readonly ManualResetEvent _hasDataEvent = new(true);
+    private readonly ManualResetEvent _hasDataEvent = new(capacity > 0);
 
     public override bool CanRead => true;
     public override bool CanSeek => false;
     public override bool CanWrite => true;
-    public override long Length => initialSize;
+    public override long Length => capacity;
     public override long Position { get; set; } = 0;
 
     public override void Flush()
@@ -19,20 +23,23 @@ internal class BlockingStream(long initialSize) : Stream
     {
         _hasDataEvent.WaitOne();
 
-        long i = 0;
-        for (i = 0; i < count; i++)
+        int bytesRead = 0;
+
+        for (int i = 0; i < count; i++)
         {
-            if (Position >= initialSize)
+            if (Position >= capacity)
             {
                 _hasDataEvent.Reset();
-                break;
+                return bytesRead;
             }
 
-            buffer[offset++] = (byte)(Random.Shared.Next() % 256);
+            buffer[offset + i] = (byte)(Position % 256);
+
             Position++;
+            bytesRead++;
         }
 
-        return (int)i;
+        return bytesRead;
     }
 
     public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -46,20 +53,22 @@ internal class BlockingStream(long initialSize) : Stream
         }
         return readTask.Result;
     }
+    public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+    {
+        var bytes = buffer.ToArray();
+        int bytesRead = await ReadAsync(bytes, 0, bytes.Length, cancellationToken);
+        MemoryExtensions.CopyTo(bytes, buffer);
+        return bytesRead;
+    }
 
     public override long Seek(long offset, SeekOrigin origin)
     {
-        if (origin != SeekOrigin.Begin)
-        {
-            throw new InvalidOperationException();
-        }
-        Position = offset;
-        return Position;
+        throw new InvalidOperationException();
     }
 
     public override void SetLength(long value)
     {
-        throw new NotImplementedException();
+        throw new InvalidOperationException();
     }
 
     public override void Write(byte[] buffer, int offset, int count)
