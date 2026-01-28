@@ -39,7 +39,7 @@ public class StreamForwarder_Tests
     }
 
     [Fact]
-    public async Task Forward_TokenCancelled_ReturnsImmediately()
+    public async Task Forward_TokenCancelled_Throws()
     {
         var sut = new StreamForwarder();
         var client = new MemoryStream(AllocateAndFillBuffer(2048));
@@ -47,14 +47,15 @@ public class StreamForwarder_Tests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        await sut.ForwardBidirectionalAsync(
+        await Should.ThrowAsync<OperationCanceledException>(
+            () => sut.ForwardBidirectionalAsync(
             "TestSession",
             client,
             server,
             new byte[2048],
             new byte[2048],
             Inspector.Default,
-            cts.Token);
+                cts.Token));
 
         client.Position.ShouldBe(0);
         server.Position.ShouldBe(0);
