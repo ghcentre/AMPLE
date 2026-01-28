@@ -5,7 +5,7 @@ namespace Ample.Streams.Tests.TestInfrastructure;
 /// Allows to read up to <paramref name="initialSize"/> bytes, then blocks indefinitely.
 /// </summary>
 /// <param name="initialSize"></param>
-internal class BlockingStream(long capacity) : Stream
+internal class NetworkStreamMock(long capacity, bool reportEndOfStream = false) : Stream
 {
     private readonly ManualResetEvent _hasDataEvent = new(capacity > 0);
 
@@ -21,6 +21,11 @@ internal class BlockingStream(long capacity) : Stream
 
     public override int Read(byte[] buffer, int offset, int count)
     {
+        if (reportEndOfStream && !_hasDataEvent.WaitOne(0))
+        {
+            return 0;
+        }
+
         _hasDataEvent.WaitOne();
 
         int bytesRead = 0;
