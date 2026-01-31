@@ -10,7 +10,7 @@ public class AmpleTaskExtensions_Tests
         var timeout = TimeSpan.FromMilliseconds(100);
         using var cts = new CancellationTokenSource();
 
-        bool result = await AmpleTaskExtensions.DelaySafe(timeout, cts.Token);
+        bool result = await Task.DelaySafe(timeout, cts.Token);
 
         result.ShouldBeTrue();
     }
@@ -22,7 +22,7 @@ public class AmpleTaskExtensions_Tests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        bool result = await AmpleTaskExtensions.DelaySafe(timeout, cts.Token);
+        bool result = await Task.DelaySafe(timeout, cts.Token);
 
         result.ShouldBeFalse();
     }
@@ -34,6 +34,6 @@ public class AmpleTaskExtensions_Tests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        await Should.NotThrowAsync(async () => await AmpleTaskExtensions.DelaySafe(timeout, cts.Token));
+        await Should.NotThrowAsync(async () => await Task.DelaySafe(timeout, cts.Token));
     }
 }
