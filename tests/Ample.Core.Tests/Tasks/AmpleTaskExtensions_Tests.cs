@@ -5,7 +5,7 @@ namespace Ample.Core.Tests.Tasks;
 public class AmpleTaskExtensions_Tests
 {
     [Fact]
-    public async Task DelaySafe_NotCancelled_ReturnsTrue()
+    public async Task DelaySafe_NotCanceled_ReturnsTrue()
     {
         var timeout = TimeSpan.FromMilliseconds(100);
         using var cts = new CancellationTokenSource();
@@ -16,7 +16,7 @@ public class AmpleTaskExtensions_Tests
     }
 
     [Fact]
-    public async Task DelaySafe_Cancelled_ReturnsFalse()
+    public async Task DelaySafe_Canceled_ReturnsFalse()
     {
         var timeout = TimeSpan.FromMilliseconds(100);
         using var cts = new CancellationTokenSource();
@@ -28,7 +28,7 @@ public class AmpleTaskExtensions_Tests
     }
 
     [Fact]
-    public async Task DelaySafe_Cancelled_DoesNotThrow()
+    public async Task DelaySafe_Canceled_DoesNotThrow()
     {
         var timeout = TimeSpan.FromMilliseconds(100);
         using var cts = new CancellationTokenSource();

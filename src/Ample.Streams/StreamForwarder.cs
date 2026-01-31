@@ -14,13 +14,13 @@ public class StreamForwarder : IStreamForwarder
 
     public long ServerToClientBytesTransferred => Interlocked.Read(ref _serverToClientBytesTransferred);
 
-    public async Task ForwardBidirectionalAsync(string sessionId,
-                                                Stream clientStream,
-                                                Stream serverStream,
-                                                byte[] clientBuffer,
-                                                byte[] serverBuffer,
-                                                IInspector inspector,
-                                                CancellationToken cancellationToken)
+    public Task ForwardBidirectionalAsync(string sessionId,
+                                          Stream clientStream,
+                                          Stream serverStream,
+                                          byte[] clientBuffer,
+                                          byte[] serverBuffer,
+                                          IInspector inspector,
+                                          CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
         ArgumentNullException.ThrowIfNull(clientStream);
@@ -29,13 +29,33 @@ public class StreamForwarder : IStreamForwarder
         Utils.ThrowIfNullOrEmptyBuffer(serverBuffer);
         ArgumentNullException.ThrowIfNull(inspector);
 
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromCanceled(cancellationToken);
+        }
+
+        return ForwardNonCanceledAsync(
+            sessionId,
+            clientStream,
+            serverStream,
+            clientBuffer,
+            serverBuffer,
+            inspector,
+            cancellationToken);
+    }
+
+    private async Task ForwardNonCanceledAsync(string sessionId,
+                                              Stream clientStream,
+                                              Stream serverStream,
+                                              byte[] clientBuffer,
+                                              byte[] serverBuffer,
+                                              IInspector inspector,
+                                              CancellationToken cancellationToken)
+    {
         Interlocked.Exchange(ref _clientToServerBytesTransferred, 0);
         Interlocked.Exchange(ref _serverToClientBytesTransferred, 0);
 
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return;
-        }
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!await _semaphore.WaitAsync(0, cancellationToken))
         {
@@ -44,10 +64,7 @@ public class StreamForwarder : IStreamForwarder
 
         try
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             await DoForwardingAsync(
                 sessionId,
@@ -83,10 +100,7 @@ public class StreamForwarder : IStreamForwarder
 
         do
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (clientToServerTask == null || clientToServerTask.IsCompleted)
             {
@@ -186,8 +200,6 @@ public class StreamForwarder : IStreamForwarder
     {
         var memory = streamState.Chunk.Data.AsMemory(streamState.Chunk.Length, streamState.Chunk.AvailableLength);
         int bytesRead = await stream.ReadAsync(memory, cancellationToken).AsTask();
-
-        //int bytesRead = await ReadFromStreamExperimentalAsync(stream, streamState.Chunk.Data, streamState.Chunk.Length, streamState.Chunk.AvailableLength, cancellationToken);
 
         if (bytesRead > 0)
         {

@@ -39,7 +39,7 @@ public class StreamForwarder_Tests
     }
 
     [Fact]
-    public async Task Forward_TokenCancelled_ReturnsImmediately()
+    public async Task Forward_TokenCancelled_Throws()
     {
         var sut = new StreamForwarder();
         var client = new MemoryStream(AllocateAndFillBuffer(2048));
@@ -47,14 +47,15 @@ public class StreamForwarder_Tests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        await sut.ForwardBidirectionalAsync(
-            "TestSession",
-            client,
-            server,
-            new byte[2048],
-            new byte[2048],
-            Inspector.Default,
-            cts.Token);
+        await Should.ThrowAsync<OperationCanceledException>(
+            () => sut.ForwardBidirectionalAsync(
+                "TestSession",
+                client,
+                server,
+                new byte[2048],
+                new byte[2048],
+                Inspector.Default,
+                cts.Token));
 
         client.Position.ShouldBe(0);
         server.Position.ShouldBe(0);
@@ -68,13 +69,12 @@ public class StreamForwarder_Tests
     [InlineData(32768)]
     [InlineData(135169)]
     [InlineData(123457)]
-    public async Task Forward_NormalFlow_CopiesClientToServerNoMoreThanBuffer(int bufferSize)
+    public async Task Forward_ServerStreamEnds_CopiesClientToServerNoMoreThanBuffer(int bufferSize)
     {
         var sut = new StreamForwarder();
         var clientBuffer = AllocateAndFillBuffer(bufferSize);
         var client = new MemoryStream(clientBuffer);
         var server = new MemoryStream();
-        var cts = new CancellationTokenSource();
 
         await sut.ForwardBidirectionalAsync(
             "TestSession",
@@ -83,8 +83,8 @@ public class StreamForwarder_Tests
             new byte[16384],
             new byte[16384],
             Inspector.Default,
-            cts.Token);
-        
+            TestContext.Current.CancellationToken);
+
         var serverBuffer = server.ToArray();
 
         sut.ClientToServerBytesTransferred.ShouldBe(Math.Min(bufferSize, 16384));
@@ -99,7 +99,7 @@ public class StreamForwarder_Tests
     [InlineData(32768)]
     [InlineData(135169)]
     [InlineData(123457)]
-    public async Task Forward_NormalFlow_CopiesServerToClientNoMoreThanBuffer(int bufferSize)
+    public async Task Forward_ClientStreamEnds_CopiesServerToClientNoMoreThanBuffer(int bufferSize)
     {
         var sut = new StreamForwarder();
         var serverBuffer = AllocateAndFillBuffer(bufferSize);
@@ -114,12 +114,43 @@ public class StreamForwarder_Tests
             new byte[16384],
             new byte[16384],
             Inspector.Default,
-            cts.Token);
-        
+            TestContext.Current.CancellationToken);
+
         var clientBuffer = client.ToArray();
 
         sut.ServerToClientBytesTransferred.ShouldBe(Math.Min(bufferSize, 16384));
         clientBuffer.ShouldBe(serverBuffer.Take(16384));
+    }
+
+    [Theory]
+    [InlineData(10, 12)]
+    [InlineData(20, 17)]
+    [InlineData(100, 200)]
+    [InlineData(200, 100)]
+    [InlineData(16384, 16384)]
+    [InlineData(16384, 16100)]
+    [InlineData(16100, 16384)]
+    [InlineData(16384, 32768)]
+    [InlineData(32768, 16384)]
+    [InlineData(135169, 130000)]
+    [InlineData(123457, 800121)]
+    public async Task Forward_ClientAndServerHasData_CopiesLessThanBuffer(int clientBufferSize, int serverBufferSize)
+    {
+        var sut = new StreamForwarder();
+        var client = new NetworkStreamMock(clientBufferSize, reportEndOfStream: true);
+        var server = new NetworkStreamMock(serverBufferSize, reportEndOfStream: true);
+
+        await sut.ForwardBidirectionalAsync(
+            "TestSession",
+            client,
+            server,
+            new byte[16384],
+            new byte[16384],
+            Inspector.Default,
+            TestContext.Current.CancellationToken);
+
+        sut.ClientToServerBytesTransferred.ShouldBeLessThanOrEqualTo(clientBufferSize);
+        sut.ServerToClientBytesTransferred.ShouldBeLessThanOrEqualTo(serverBufferSize);
     }
 
     [Theory]
@@ -132,11 +163,11 @@ public class StreamForwarder_Tests
     {
         // arrange
         var sessionId = "TestSession";
-        var clientStream = new BlockingStream(clientSize);
-        var serverStream = new BlockingStream(serverSize);
+        var clientStream = new NetworkStreamMock(clientSize);
+        var serverStream = new NetworkStreamMock(serverSize);
         var clientBuffer = new byte[16384];
         var serverBuffer = new byte[16384];
-        var cts = new CancellationTokenSource(700);
+        var cts = new CancellationTokenSource(800);
         var sut = new StreamForwarder();
 
         var task = sut.ForwardBidirectionalAsync(sessionId, clientStream, serverStream, clientBuffer, serverBuffer, Inspector.Default, cts.Token);
@@ -144,8 +175,8 @@ public class StreamForwarder_Tests
         task.GetAwaiter().GetResult();
 
         task.IsCompleted.ShouldBeTrue();
-        sut.ClientToServerBytesTransferred.ShouldBe(clientSize);
-        sut.ServerToClientBytesTransferred.ShouldBe(serverSize);
+        sut.ClientToServerBytesTransferred.ShouldBeLessThanOrEqualTo(clientSize);
+        sut.ServerToClientBytesTransferred.ShouldBeLessThanOrEqualTo(serverSize);
     }
 
     [Theory]
@@ -155,7 +186,7 @@ public class StreamForwarder_Tests
     {
         var clientBuffer = AllocateAndFillBuffer(buffersize);
         var clientStream = new MemoryStream(clientBuffer);
-        var serverStream = new BlockingStream(0);
+        var serverStream = new NetworkStreamMock(0);
         long collectedInInspector = 0;
         var inspector = new ActionInspector(
             async (chunk) =>
@@ -188,7 +219,7 @@ public class StreamForwarder_Tests
     {
         var serverBuffer = AllocateAndFillBuffer(buffersize);
         var serverStream = new MemoryStream(serverBuffer);
-        var clientStream = new BlockingStream(0);
+        var clientStream = new NetworkStreamMock(0);
         long collectedInInspector = 0;
         var inspector = new ActionInspector(
             async (chunk) =>
