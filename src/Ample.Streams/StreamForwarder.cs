@@ -1,4 +1,5 @@
-﻿using Ample.Streams.Abstractions;
+﻿using Ample.Core.Tasks;
+using Ample.Streams.Abstractions;
 using Ample.Streams.Exceptions;
 
 namespace Ample.Streams;
@@ -19,6 +20,7 @@ public class StreamForwarder : IStreamForwarder
                                           Stream serverStream,
                                           byte[] clientBuffer,
                                           byte[] serverBuffer,
+                                          TimeSpan timeout,
                                           IInspector inspector,
                                           CancellationToken cancellationToken)
     {
@@ -40,6 +42,7 @@ public class StreamForwarder : IStreamForwarder
             serverStream,
             clientBuffer,
             serverBuffer,
+            timeout,
             inspector,
             cancellationToken);
     }
@@ -49,6 +52,7 @@ public class StreamForwarder : IStreamForwarder
                                               Stream serverStream,
                                               byte[] clientBuffer,
                                               byte[] serverBuffer,
+                                              TimeSpan timeout,
                                               IInspector inspector,
                                               CancellationToken cancellationToken)
     {
@@ -72,6 +76,7 @@ public class StreamForwarder : IStreamForwarder
                 serverStream,
                 clientBuffer,
                 serverBuffer,
+                timeout,
                 inspector,
                 cancellationToken);
         }
@@ -86,6 +91,7 @@ public class StreamForwarder : IStreamForwarder
                                          Stream serverStream,
                                          byte[] clientBuffer,
                                          byte[] serverBuffer,
+                                         TimeSpan timeout,
                                          IInspector inspector,
                                          CancellationToken cancellationToken)
     {
@@ -118,7 +124,8 @@ public class StreamForwarder : IStreamForwarder
                     async () => await ReadFromStreamAsync(serverStream, serverState, cancellationToken));
             }
 
-            await Task.WhenAny(clientToServerTask, serverToClientTask);
+            //await Task.WhenAny(clientToServerTask, serverToClientTask);
+            await WaitForTasksAsync(clientToServerTask, serverToClientTask, timeout, cancellationToken);
 
             if (clientState.HasData)
             {
@@ -146,6 +153,29 @@ public class StreamForwarder : IStreamForwarder
                     cancellationToken);
             }
         } while (!clientState.EndOfStream && !serverState.EndOfStream);
+    }
+
+    private static async Task WaitForTasksAsync(Task clientToServerTask,
+                                                Task serverToClientTask,
+                                                TimeSpan timeout,
+                                                CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var delayTask = Task.DelaySafe(timeout, cts.Token);
+
+        var completedTask = await Task.WhenAny(clientToServerTask, serverToClientTask, delayTask);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        cts.Token.ThrowIfCancellationRequested();
+
+        if (completedTask != delayTask)
+        {
+            cts.Cancel();
+            await completedTask;
+            return;
+        }
+
+        throw new ForwardTimeoutException();
     }
 
     private static async Task HandleStreamStateData(IInspector inspector,

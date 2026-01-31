@@ -12,6 +12,7 @@ public interface IStreamForwarder
         Stream serverStream,
         byte[] clientBuffer,
         byte[] serverBuffer,
+        TimeSpan timeout,
         IInspector inspector,
         CancellationToken cancellationToken);
 }
