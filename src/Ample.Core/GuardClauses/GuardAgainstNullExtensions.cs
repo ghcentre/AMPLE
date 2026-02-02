@@ -10,7 +10,9 @@ public static class GuardAgainstNullExtensions
 {
     extension(IGuard guard)
     {
+
 #pragma warning disable CA1822 // Mark members as static
+
         /// <summary>
         /// Ensures that the specified argument is not <see langword="null"/> and throws an <see cref="ArgumentNullException"/> if it is.
         /// </summary>
@@ -20,9 +22,8 @@ public static class GuardAgainstNullExtensions
         /// This parameter is optional.</param>
         /// <returns>The validated argument if it is not <see langword="null"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="argument"/> is <see langword="null"/>.</exception>
-        public T Null<T>(
-            [NotNull] T? argument,
-            [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+        public T Null<T>([NotNull] T? argument,
+                         [CallerArgumentExpression(nameof(argument))] string? paramName = null)
         {
             ArgumentNullException.ThrowIfNull(argument, paramName);
             return argument;
@@ -38,9 +39,8 @@ public static class GuardAgainstNullExtensions
         /// This parameter is optional.</param>
         /// <returns>The non-null value of the specified argument.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="argument"/> is <see langword="null"/>.</exception>
-        public static T Null<T>(
-            [NotNull] T? argument,
-            [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+        public static T Null<T>([NotNull] T? argument,
+                                [CallerArgumentExpression(nameof(argument))] string? paramName = null)
             where T : struct
         {
             if (!argument.HasValue)
@@ -49,6 +49,8 @@ public static class GuardAgainstNullExtensions
             }
             return argument.Value;
         }
+
 #pragma warning restore CA1822 // Mark members as static
+
     }
 }
