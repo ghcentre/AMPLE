@@ -108,7 +108,7 @@ public class StreamForwarder : IStreamForwarder
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (clientToServerTask == null || clientToServerTask.IsCompleted)
+            if (!clientState.HasData && (clientToServerTask == null || clientToServerTask.IsCompleted))
             {
                 clientToServerTask = ThrowIfErrorAsync(
                     Operation.Read,
@@ -116,7 +116,7 @@ public class StreamForwarder : IStreamForwarder
                     async () => await ReadFromStreamAsync(clientStream, clientState, cancellationToken));
             }
 
-            if (serverToClientTask == null || serverToClientTask.IsCompleted)
+            if (!serverState.HasData && (serverToClientTask == null || serverToClientTask.IsCompleted))
             {
                 serverToClientTask = ThrowIfErrorAsync(
                     Operation.Read,
@@ -124,7 +124,8 @@ public class StreamForwarder : IStreamForwarder
                     async () => await ReadFromStreamAsync(serverStream, serverState, cancellationToken));
             }
 
-            //await Task.WhenAny(clientToServerTask, serverToClientTask);
+            clientToServerTask ??= Task.CompletedTask;
+            serverToClientTask ??= Task.CompletedTask;
             await WaitForTasksAsync(clientToServerTask, serverToClientTask, timeout, cancellationToken);
 
             if (clientState.HasData)
@@ -229,7 +230,7 @@ public class StreamForwarder : IStreamForwarder
     private static async Task ReadFromStreamAsync(Stream stream, StreamState streamState, CancellationToken cancellationToken)
     {
         var memory = streamState.Chunk.Data.AsMemory(streamState.Chunk.Length, streamState.Chunk.AvailableLength);
-        int bytesRead = await stream.ReadAsync(memory, cancellationToken).AsTask();
+        int bytesRead = await stream.ReadAsync(memory, cancellationToken);
 
         if (bytesRead > 0)
         {
@@ -260,7 +261,7 @@ public class StreamForwarder : IStreamForwarder
         {
             await func();
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is not OperationCanceledException)
         {
             throw new ForwardException(operation, side, exception);
         }

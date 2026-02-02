@@ -7,7 +7,7 @@ namespace Ample.Streams;
 internal class StreamState(IInspectionChunk chunk)
 {
     private bool _hasData = false;
-    private readonly Lock _locker = new();
+    private readonly object _locker = new();
 
     public IInspectionChunk Chunk { get; } = Guard.Against.Null(chunk);
 
@@ -15,7 +15,10 @@ internal class StreamState(IInspectionChunk chunk)
     {
         get
         {
-            return _hasData;
+            lock (_locker)
+            {
+                return _hasData;
+            }
         }
     }
 
@@ -32,6 +35,7 @@ internal class StreamState(IInspectionChunk chunk)
             }
             catch (ArgumentException excepton)
             {
+                _hasData = true;
                 throw new BufferOverflowException(excepton);
             }
         }

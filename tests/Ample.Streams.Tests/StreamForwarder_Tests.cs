@@ -161,11 +161,10 @@ public class StreamForwarder_Tests
 
     [Theory]
     [InlineData(32 * 1024, 123)]
+    [InlineData(32 * 1024 + 7, 123)]
     [InlineData(112, 64 * 1024)]
     [InlineData(112 * 1024 + 19, 64 * 1024 + 21)]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1051:Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken", Justification = "<Pending>")]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1031:Do not use blocking task operations in test method", Justification = "<Pending>")]
-    public async Task Forward_TokenCanceled_Returns(int serverSize, int clientSize)
+    public void Forward_TokenCanceled_Returns(int serverSize, int clientSize)
     {
         // arrange
         var sessionId = "TestSession";
@@ -173,7 +172,7 @@ public class StreamForwarder_Tests
         var serverStream = new NetworkStreamMock(serverSize);
         var clientBuffer = new byte[16384];
         var serverBuffer = new byte[16384];
-        var cts = new CancellationTokenSource(2000);
+        var cts = new CancellationTokenSource(500);
         var sut = new StreamForwarder();
 
         var task = sut.ForwardBidirectionalAsync(
@@ -186,9 +185,7 @@ public class StreamForwarder_Tests
             Inspector.Default,
             cts.Token);
 
-        task.GetAwaiter().GetResult();
-
-        task.IsCompleted.ShouldBeTrue();
+        Should.Throw<OperationCanceledException>(() => task.GetAwaiter().GetResult());
         sut.ClientToServerBytesTransferred.ShouldBeLessThanOrEqualTo(clientSize);
         sut.ServerToClientBytesTransferred.ShouldBeLessThanOrEqualTo(serverSize);
     }
