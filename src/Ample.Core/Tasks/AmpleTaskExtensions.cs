@@ -12,7 +12,8 @@ public static class AmpleTaskExtensions
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to signal cancellation before
         /// the timeout elapses.</param>
         /// <returns>A <see cref="Task"/> that completes with <see langword="true"/> if the timeout elapsed without cancellation;
-        /// otherwise, <see langword="false"/> if the cancellation token was signaled before the timeout.</returns>
+        /// otherwise, <see langword="false"/> if the cancellation token was signaled before the timeout, -or-,
+        /// the <paramref name="cancellationToken"/> source has been disposed.</returns>
         /// <remarks>
         /// This method does not throw if the cancellation token is signaled; instead, it returns <see langword="false"/>.
         /// The returned task always completes successfully.
@@ -24,8 +25,18 @@ public static class AmpleTaskExtensions
             Task.Factory.StartNew(
                 () =>
                 {
-                    bool signaled = cancellationToken.WaitHandle.WaitOne(timeout);
-                    tcs.SetResult(!signaled);
+                    try
+                    {
+                        bool signaled = cancellationToken.WaitHandle.WaitOne(timeout);
+                        tcs.SetResult(!signaled);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        //
+                        // if the cancellation token source has been disposed, we consider the delay was canceled
+                        //
+                        tcs.SetResult(false);
+                    }
                 },
                 CancellationToken.None);
 
