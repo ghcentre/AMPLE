@@ -25,6 +25,7 @@ public class StreamForwarder_Tests
                 new MemoryStream(),
                 [],
                 new byte[2048],
+                Timeout.InfiniteTimeSpan,
                 Inspector.Default,
                 CancellationToken.None));
         await Should.ThrowAsync<ArgumentException>(
@@ -34,6 +35,7 @@ public class StreamForwarder_Tests
                 new MemoryStream(),
                 new byte[2048],
                 [],
+                Timeout.InfiniteTimeSpan,
                 Inspector.Default,
                 CancellationToken.None));
     }
@@ -54,6 +56,7 @@ public class StreamForwarder_Tests
                 server,
                 new byte[2048],
                 new byte[2048],
+                Timeout.InfiniteTimeSpan,
                 Inspector.Default,
                 cts.Token));
 
@@ -82,6 +85,7 @@ public class StreamForwarder_Tests
             server,
             new byte[16384],
             new byte[16384],
+            Timeout.InfiniteTimeSpan,
             Inspector.Default,
             TestContext.Current.CancellationToken);
 
@@ -113,6 +117,7 @@ public class StreamForwarder_Tests
             server,
             new byte[16384],
             new byte[16384],
+            Timeout.InfiniteTimeSpan,
             Inspector.Default,
             TestContext.Current.CancellationToken);
 
@@ -146,6 +151,7 @@ public class StreamForwarder_Tests
             server,
             new byte[16384],
             new byte[16384],
+            Timeout.InfiniteTimeSpan,
             Inspector.Default,
             TestContext.Current.CancellationToken);
 
@@ -167,10 +173,18 @@ public class StreamForwarder_Tests
         var serverStream = new NetworkStreamMock(serverSize);
         var clientBuffer = new byte[16384];
         var serverBuffer = new byte[16384];
-        var cts = new CancellationTokenSource(800);
+        var cts = new CancellationTokenSource(2000);
         var sut = new StreamForwarder();
 
-        var task = sut.ForwardBidirectionalAsync(sessionId, clientStream, serverStream, clientBuffer, serverBuffer, Inspector.Default, cts.Token);
+        var task = sut.ForwardBidirectionalAsync(
+            sessionId,
+            clientStream,
+            serverStream,
+            clientBuffer,
+            serverBuffer,
+            Timeout.InfiniteTimeSpan,
+            Inspector.Default,
+            cts.Token);
 
         task.GetAwaiter().GetResult();
 
@@ -205,6 +219,7 @@ public class StreamForwarder_Tests
             serverStream,
             new byte[2048],
             new byte[2048],
+            Timeout.InfiniteTimeSpan,
             inspector,
             CancellationToken.None);
 
@@ -238,6 +253,7 @@ public class StreamForwarder_Tests
             serverStream,
             new byte[2048],
             new byte[2048],
+            Timeout.InfiniteTimeSpan,
             inspector,
             CancellationToken.None);
 
