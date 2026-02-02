@@ -19,7 +19,7 @@ namespace Ample.Core {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class SR {
@@ -66,6 +66,15 @@ namespace Ample.Core {
         internal static string Format_InvalidString {
             get {
                 return ResourceManager.GetString("Format_InvalidString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more strings in the input sequence are null..
+        /// </summary>
+        internal static string Sequence_NullString {
+            get {
+                return ResourceManager.GetString("Sequence_NullString", resourceCulture);
             }
         }
     }
