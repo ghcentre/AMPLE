@@ -1,7 +1,7 @@
-﻿namespace Ample.Streams;
+﻿namespace Ample.Streams.Abstractions;
 
 /// <summary>
-/// Result of inspection perfomed by <see cref="Abstractions.IInspector"/>.
+/// Result of inspection perfomed by <see cref="IInspector"/>.
 /// </summary>
 public enum InspectionResult
 {

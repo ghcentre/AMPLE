@@ -1,4 +1,4 @@
-﻿namespace Ample.Streams;
+﻿namespace Ample.Streams.Abstractions;
 
 public enum Operation
 {

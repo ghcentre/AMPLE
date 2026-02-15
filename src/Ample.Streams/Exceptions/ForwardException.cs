@@ -1,4 +1,5 @@
 ﻿using Ample.Core.GuardClauses;
+using Ample.Streams.Abstractions;
 
 namespace Ample.Streams.Exceptions;
 
