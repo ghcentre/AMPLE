@@ -61,7 +61,7 @@ public class StreamForwarder : IStreamForwarder
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!await _semaphore.WaitAsync(0, cancellationToken))
+        if (!await _semaphore.WaitAsync(0, cancellationToken).ConfigureAwait(false))
         {
             throw new ForwardingAlreadyRunningException();
         }
@@ -78,7 +78,7 @@ public class StreamForwarder : IStreamForwarder
                 serverBuffer,
                 timeout,
                 inspector,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -126,7 +126,7 @@ public class StreamForwarder : IStreamForwarder
 
             clientToServerTask ??= Task.CompletedTask;
             serverToClientTask ??= Task.CompletedTask;
-            await WaitForTasksAsync(clientToServerTask, serverToClientTask, timeout, cancellationToken);
+            await WaitForTasksAsync(clientToServerTask, serverToClientTask, timeout, cancellationToken).ConfigureAwait(false);
 
             if (clientState.HasData)
             {
@@ -138,7 +138,7 @@ public class StreamForwarder : IStreamForwarder
                     serverStream,
                     x => Interlocked.Add(ref _serverToClientBytesTransferred, x),
                     x => Interlocked.Add(ref _clientToServerBytesTransferred, x),
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
 
             if (serverState.HasData)
@@ -151,7 +151,7 @@ public class StreamForwarder : IStreamForwarder
                     clientStream,
                     x => Interlocked.Add(ref _clientToServerBytesTransferred, x),
                     x => Interlocked.Add(ref _serverToClientBytesTransferred, x),
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
         } while (!clientState.EndOfStream && !serverState.EndOfStream);
     }
@@ -172,7 +172,7 @@ public class StreamForwarder : IStreamForwarder
         if (completedTask != delayTask)
         {
             cts.Cancel();
-            await completedTask;
+            await completedTask.ConfigureAwait(false);
             return;
         }
 
@@ -201,7 +201,7 @@ public class StreamForwarder : IStreamForwarder
                         state.Chunk.Data,
                         state.Chunk.Length,
                         () => anotherStreamTransferredBytesIncrement(state.Chunk.Length),
-                        cancellationToken));
+                        cancellationToken)).ConfigureAwait(false);
                 state.ResetChunk();
                 break;
 
@@ -221,7 +221,7 @@ public class StreamForwarder : IStreamForwarder
                         state.Chunk.Data,
                         state.Chunk.Length,
                         () => associatedStreamTransferredBytesIncrement(state.Chunk.Length),
-                        cancellationToken));
+                        cancellationToken)).ConfigureAwait(false);
                 state.ResetChunk();
                 break;
         }
@@ -250,8 +250,8 @@ public class StreamForwarder : IStreamForwarder
         CancellationToken cancellationToken)
     {
         var memory = buffer.AsMemory(0, count); // offset is always 0 -- writes entire not yet written buffer
-        await anotherStream.WriteAsync(memory, cancellationToken);
-        await anotherStream.FlushAsync(cancellationToken);
+        await anotherStream.WriteAsync(memory, cancellationToken).ConfigureAwait(false);
+        await anotherStream.FlushAsync(cancellationToken).ConfigureAwait(false);
         incrementTransfered();
     }
 
@@ -259,7 +259,7 @@ public class StreamForwarder : IStreamForwarder
     {
         try
         {
-            await func();
+            await func().ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
