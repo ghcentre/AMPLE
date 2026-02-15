@@ -1,7 +1,10 @@
-﻿namespace Ample.Streams;
+﻿using System.Runtime.CompilerServices;
+
+namespace Ample.Streams;
 
 internal static class Utils
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte[] ThrowIfNullOrEmptyBuffer(byte[] data)
     {
         ArgumentNullException.ThrowIfNull(data);
