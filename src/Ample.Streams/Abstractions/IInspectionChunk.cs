@@ -1,5 +1,8 @@
 ﻿namespace Ample.Streams.Abstractions;
 
+/// <summary>
+/// Represents a chunk of inspection data, including session information, data flow direction, and associated metadata.
+/// </summary>
 public interface IInspectionChunk
 {
     /// <summary>
