@@ -1,7 +1,7 @@
 ﻿namespace Ample.Core.Uuids;
 
 /// <summary>
-/// Constants used by the <see cref="CompactGuid"/> and <see cref="GuidExtensions"/> classes.
+/// Constants used by the <see cref="GuidExtensions"/> classe.
 /// </summary>
 internal static class CompactGuidConstants
 {

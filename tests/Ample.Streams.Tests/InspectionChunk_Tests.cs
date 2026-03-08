@@ -1,4 +1,6 @@
-﻿namespace Ample.Streams.Tests;
+﻿using Ample.Streams.Abstractions;
+
+namespace Ample.Streams.Tests;
 
 public class InspectionChunk_Tests
 {

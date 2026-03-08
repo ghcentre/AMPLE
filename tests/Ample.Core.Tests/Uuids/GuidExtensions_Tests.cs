@@ -50,7 +50,7 @@ public class GuidExtensions_Tests
         {
             var sut = Guid.NewGuid();
             var compactString = sut.ToCompactString();
-            var result = CompactGuid.Parse(compactString);
+            var result = Guid.ParseCompact(compactString);
             result.ShouldBe(sut);
         }
     }

@@ -1,4 +1,5 @@
-﻿using Ample.Streams.Tests.TestInfrastructure;
+﻿using Ample.Streams.Abstractions;
+using Ample.Streams.Tests.TestInfrastructure;
 
 namespace Ample.Streams.Tests;
 

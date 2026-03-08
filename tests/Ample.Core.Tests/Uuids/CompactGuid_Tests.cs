@@ -31,79 +31,79 @@ public class CompactGuid_Tests
 
     #endregion
 
-    #region TryParse
+    #region TryParseCompact
 
     [Theory]
     [MemberData(nameof(NullOrEmptyStrings))]
-    public void TryParse_NullOrEmpty_ReturnsFalse(string? inputString)
+    public void TryParseCompact_NullOrEmpty_ReturnsFalse(string? inputString)
     {
         var sut = inputString;
-        bool result = CompactGuid.TryParse(sut, out _);
+        bool result = Guid.TryParseCompact(sut, out _);
         result.ShouldBeFalse();
     }
 
     [Theory]
     [MemberData(nameof(InvalidLengthStrings))]
-    public void TryParse_InvalidLength_ReturnsFalse(string? inputString)
+    public void TryParseCompact_InvalidLength_ReturnsFalse(string? inputString)
     {
         var sut = inputString;
-        bool result = CompactGuid.TryParse(sut, out _);
+        bool result = Guid.TryParseCompact(sut, out _);
         result.ShouldBeFalse();
     }
 
     [Theory]
     [MemberData(nameof(InvalidStrings))]
-    public void TryParse_InvalidData_ReturnsFalse(string? inputString)
+    public void TryParseCompact_InvalidData_ReturnsFalse(string? inputString)
     {
         var sut = inputString;
-        bool result = CompactGuid.TryParse(sut, out _);
+        bool result = Guid.TryParseCompact(sut, out _);
         result.ShouldBeFalse();
     }
 
     [Theory]
     [MemberData(nameof(KnownGuids))]
-    public void TryParse_KnownStrings_ReturnsTrueAndOutputsKnownGuid(string guidString, string compactGuidString)
+    public void TryParseCompact_KnownStrings_ReturnsTrueAndOutputsKnownGuid(string guidString, string compactGuidString)
     {
         var sut = compactGuidString;
-        var success = CompactGuid.TryParse(sut, out var result);
+        var success = Guid.TryParseCompact(sut, out var result);
         success.ShouldBeTrue();
         result.ToString().ShouldBe(guidString);
     }
 
     #endregion
 
-    #region Parse
+    #region ParseCompact
 
     [Theory]
     [MemberData(nameof(NullOrEmptyStrings))]
-    public void Parse_NullOrEmpty_Throws(string? inputString)
+    public void ParseCompact_NullOrEmpty_Throws(string? inputString)
     {
         var sut = inputString;
-        Should.Throw<FormatException>(() => CompactGuid.Parse(sut));
+        Should.Throw<FormatException>(() => Guid.ParseCompact(sut));
     }
 
     [Theory]
     [MemberData(nameof(InvalidLengthStrings))]
-    public void Parse_InvalidLength_ReturnsFalse(string? inputString)
+    public void ParseCompact_InvalidLength_ReturnsFalse(string? inputString)
     {
         var sut = inputString;
-        Should.Throw<FormatException>(() => CompactGuid.Parse(sut));
+        Should.Throw<FormatException>(() => Guid.ParseCompact(sut));
     }
 
     [Theory]
     [MemberData(nameof(InvalidStrings))]
-    public void Parse_InvalidData_ReturnsFalse(string? inputString)
+    public void ParseCompact_InvalidData_ReturnsFalse(string? inputString)
     {
         var sut = inputString;
-        Should.Throw<FormatException>(() => CompactGuid.Parse(sut));
+        Should.Throw<FormatException>(() => Guid.ParseCompact(sut));
     }
 
     [Theory]
     [MemberData(nameof(KnownGuids))]
-    public void Parse_KnownStrings_ReturnsTrueAndOutputsKnownGuid(string guidString, string compactGuidString)
+    public void ParseCompact_KnownStrings_ReturnsTrueAndOutputsKnownGuid(string guidString, string compactGuidString)
     {
         var sut = compactGuidString;
-        var result = CompactGuid.Parse(sut);
+        var result = Guid.ParseCompact(sut);
         result.ToString().ShouldBe(guidString);
     }
 

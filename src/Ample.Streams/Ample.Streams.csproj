@@ -18,7 +18,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Ample.Core\Ample.Core.csproj" />
+      <ProjectReference Include="..\Ample.Core\Ample.Core.csproj" />
     </ItemGroup>
 
 </Project>
