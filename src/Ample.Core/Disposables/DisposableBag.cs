@@ -22,7 +22,7 @@ public static class DisposableBag
     /// <typeparam name="T">The type of the value.</typeparam>
     /// <param name="value">The value to store in the bag.</param>
     /// <returns><see cref="DisposableBag{T}"/>.</returns>
-    public static DisposableBag<T> Create<T>(T value) where T : class
+    public static DisposableBag<T> Create<T>(T value)
     {
         return new DisposableBag<T>(value);
     }
@@ -50,7 +50,7 @@ public static class DisposableBag
     /// <returns>The bag.</returns>
     /// <exception cref="ArgumentNullException">The bag is <see langword="null"/>,
     /// or the disposable object is <see langword="null"/>.</exception>
-    public static DisposableBag<T> With<T>(this DisposableBag<T> bag, IDisposable disposable) where T : class
+    public static DisposableBag<T> With<T>(this DisposableBag<T> bag, IDisposable disposable)
     {
         Guard.Against.Null(bag);
         Guard.Against.Null(disposable);
@@ -69,7 +69,7 @@ public static class DisposableBag
     /// <returns>The bag.</returns>
     /// <exception cref="ArgumentNullException">The bag is <see langword="null"/>,
     /// or the action is <see langword="null"/>.</exception>
-    public static DisposableBag<T> With<T>(this DisposableBag<T> bag, Action action) where T : class
+    public static DisposableBag<T> With<T>(this DisposableBag<T> bag, Action action)
     {
         Guard.Against.Null(bag);
         Guard.Against.Null(action);
@@ -84,7 +84,7 @@ public static class DisposableBag
     /// </summary>
     /// <typeparam name="T">The type of the value stored in the bag.</typeparam>
     /// <param name="bag">The <see cref="DisposableBag{T}"/> bag.</param>
-    extension<T>(DisposableBag<T> bag) where T : class
+    extension<T>(DisposableBag<T> bag)
     {
         /// <summary>
         /// Adds the collection of disposables to the bag. Disposables are disposed when the bag is disposed.
