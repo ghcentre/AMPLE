@@ -44,9 +44,10 @@ namespace Ample.Core.Disposables;
 /// Initializes a new instance of the <see cref="DisposableBag{T}"/> class.
 /// </remarks>
 /// <param name="value">The value to store in the bag.</param>
-public class DisposableBag<T>(T? value) where T : class
+public class DisposableBag<T>(T? value)
 {
     private readonly Stack<Action> _actions = new();
+
 
     /// <summary>
     /// Adds a <see cref="Action"/> to the collection of actions which are executed when the container is disposed.

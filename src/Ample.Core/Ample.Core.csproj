@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Title>AMPLE Core</Title>
-    <VersionPrefix>2.3.0</VersionPrefix>
+    <VersionPrefix>2.4.0</VersionPrefix>
     <Authors>GHCentre</Authors>
     <Product>AMPLE</Product>
     <Copyright>© 2014-2026 George Harder's Centre</Copyright>
