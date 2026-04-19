@@ -1,5 +1,8 @@
 ﻿namespace Ample.Core.Tasks;
 
+/// <summary>
+/// Provides extension methods for the <see cref="Task"/> class.
+/// </summary>
 public static class AmpleTaskExtensions
 {
     extension(Task)
@@ -8,10 +11,12 @@ public static class AmpleTaskExtensions
         /// Waits asynchronously for the specified timeout period unless the cancellation token is signaled, and indicates
         /// whether the delay completed without cancellation.
         /// </summary>
-        /// <param name="timeout">The amount of time to wait before completing the delay. Must be a non-negative time span.</param>
+        /// <param name="timeout">The amount of time to wait before completing the delay.
+        /// Must be a non-negative time span.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that can be used to signal cancellation before
         /// the timeout elapses.</param>
-        /// <returns>A <see cref="Task"/> that completes with <see langword="true"/> if the timeout elapsed without cancellation;
+        /// <returns>A <see cref="Task"/> that completes with
+        /// <see langword="true"/> if the timeout elapsed without cancellation;
         /// otherwise, <see langword="false"/> if the cancellation token was signaled before the timeout, -or-,
         /// the <paramref name="cancellationToken"/> source has been disposed.</returns>
         /// <remarks>
