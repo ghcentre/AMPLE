@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+﻿using Ample.Core.GuardClauses;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Net;
 
@@ -70,7 +71,7 @@ public static class IPNetworkExtensions
         /// <returns>The 32-bit unsigned integer representation of the IPv4 address.</returns>
         public uint ToUint32()
         {
-            ArgumentNullException.ThrowIfNull(address);
+            Guard.Against.Null(address);
             ForceIpV4(address);
             Span<byte> bytes = stackalloc byte[4];
             address.TryWriteBytes(bytes, out _);
@@ -84,7 +85,6 @@ public static class IPNetworkExtensions
         /// <returns>The original IPv4 <see cref="IPAddress"/>.</returns>
         private IPAddress ForceIpV4()
         {
-            ArgumentNullException.ThrowIfNull(address);
             if (address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
             {
                 throw new FormatException($"InterNetwork address family expected for address: {address}");
@@ -93,59 +93,64 @@ public static class IPNetworkExtensions
         }
     }
 
-    /// <summary>
-    /// Parses a string representation of an IP network in CIDR notation (e.g., "192.168.1.0/24"),
-    /// or in "address/mask" format (e.g., "192.168.1.0/255.255.255.0"),
-    /// or a single IP address, returning an <see cref="IPNetwork"/> instance.
-    /// </summary>
-    /// <param name="source">The string to parse.</param>
-    /// <returns>An <see cref="IPNetwork"/> representing the parsed network or host.</returns>
-    /// <exception cref="ArgumentException">The source is null or empty.</exception>
-    /// <exception cref="FormatException">The source is not in a valid format.</exception>"
-    public static IPNetwork Parse(string source)
+    extension(IPNetwork)
     {
-        ArgumentException.ThrowIfNullOrEmpty(source);
-
-        int slashPos = source.IndexOf('/');
-
-        //
-        // 192.168.42.43 => 192.168.42.43/32
-        //
-        if (slashPos == -1)
+        /// <summary>
+        /// Parses a string representation of an IP network in CIDR notation (e.g., "192.168.1.0/24"),
+        /// or in "address/mask" format (e.g., "192.168.1.0/255.255.255.0"),
+        /// or a single IP address, returning an <see cref="IPNetwork"/> instance.
+        /// </summary>
+        /// <param name="source">The string to parse.</param>
+        /// <returns>An <see cref="IPNetwork"/> representing the parsed network or host.</returns>
+        /// <exception cref="ArgumentException">The source is null or empty.</exception>
+        /// <exception cref="FormatException">The source is not in a valid format.</exception>"
+        public static IPNetwork ParseExtended(string source)
         {
-            var singleHost = IPAddress.Parse(source);
-            return new IPNetwork(singleHost, 32);
-        }
+            Guard.Against.NullOrEmpty(source);
 
-        var host = source.AsSpan(..slashPos);
-        var hostIP = IPAddress.Parse(host);
-        ForceIpV4(hostIP);
+            int slashPos = source.IndexOf('/');
 
-        //
-        // 192.168.0.2/255.255.255.0 => 192.168.0.0/24
-        // 192.168.1.2/128.0.0.0 => skip (not a valid CIDR mask)
-        //
-        var networkMaskSpan = source.AsSpan((slashPos + 1)..);
-        if (IPAddress.TryParse(networkMaskSpan, out var networkMask))
-        {
-            ForceIpV4(networkMask);
-            if (TryConvertToCidrPrefix(networkMask, out int prefix))
+            //
+            // 192.168.42.43 => 192.168.42.43/32
+            //
+            if (slashPos == -1)
             {
-                return new IPNetwork(hostIP, prefix);
+                var singleHost = IPAddress.Parse(source);
+                return new IPNetwork(singleHost, 32);
             }
+
+            var host = source.AsSpan(..slashPos);
+            var hostIP = IPAddress.Parse(host);
+            ForceIpV4(hostIP);
+
+            //
+            // 192.168.0.2/255.255.255.0 => 192.168.0.0/24
+            // 192.168.1.2/128.0.0.0 => skip (not a valid CIDR mask)
+            //
+            var networkMaskSpan = source.AsSpan((slashPos + 1)..);
+            if (IPAddress.TryParse(networkMaskSpan, out var networkMask))
+            {
+                ForceIpV4(networkMask);
+                if (TryConvertToCidrPrefix(networkMask, out int prefix))
+                {
+                    return new IPNetwork(hostIP, prefix);
+                }
+            }
+
+            // 192.168.3.2/24 => 192.168.3.0/24
+            var cidr = source.AsSpan((slashPos + 1)..);
+            int cidrInt = int.Parse(cidr, CultureInfo.InvariantCulture);
+
+            var baseHost = ConvertToBaseAddress(hostIP, cidrInt);
+            return new IPNetwork(baseHost, cidrInt);
         }
-
-        // 192.168.3.2/24 => 192.168.3.0/24
-        var cidr = source.AsSpan((slashPos + 1)..);
-        int cidrInt = int.Parse(cidr, CultureInfo.InvariantCulture);
-
-        var baseHost = ConvertToBaseAddress(hostIP, cidrInt);
-        return new IPNetwork(baseHost, cidrInt);
     }
+
+    
 
     private static bool TryConvertToCidrPrefix(IPAddress address, out int prefix)
     {
-        ArgumentNullException.ThrowIfNull(address);
+        Guard.Against.Null(address);
 
         uint mask = address.ToUint32();
 

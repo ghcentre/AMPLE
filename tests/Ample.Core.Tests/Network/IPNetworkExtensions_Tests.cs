@@ -95,7 +95,7 @@ public class IPNetworkExtensions_Tests
     [InlineData("5.6.7.8/0.0.0.0",              "0.0.0.0",      0)]
     public void ParseAny_Parses(string network, string baseAddress, int prefixLength)
     {
-        var sut = IPNetworkExtensions.Parse(network);
+        var sut = IPNetwork.ParseExtended(network);
         var expectedBaseAddress = IPAddress.Parse(baseAddress);
         sut.BaseAddress.ShouldBe(expectedBaseAddress);
         sut.PrefixLength.ShouldBe(prefixLength);
@@ -104,7 +104,7 @@ public class IPNetworkExtensions_Tests
     [Fact]
     public void Parse_Invalid_Throws()
     {
-        Should.Throw<FormatException>(() => IPNetworkExtensions.Parse("192.168.0.22/128.0.1.0"));
+        Should.Throw<FormatException>(() => IPNetwork.ParseExtended("192.168.0.22/128.0.1.0"));
     }
 
     #endregion
