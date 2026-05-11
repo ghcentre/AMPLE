@@ -1,4 +1,6 @@
-﻿namespace Ample.Core.Strings;
+﻿using Ample.Core.GuardClauses;
+
+namespace Ample.Core.Strings;
 
 public static class StringExtensions
 {
@@ -12,7 +14,7 @@ public static class StringExtensions
         /// one of the strings in the input sequence is <see langword="null"/>.</exception>
         public Index LongestCommonPrefixIndex()
         {
-            ArgumentNullException.ThrowIfNull(strings);
+            Guard.Against.Null(strings);
 
             int maxLength = 0;
             string? first = null;
