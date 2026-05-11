@@ -4,7 +4,7 @@ namespace Ample.Core.Tests.Nullables;
 
 public class MaybeNull_Tests
 {
-    #region Map(source, func)
+    #region Map(func)
 
     [Fact]
     public void Map_ReferenceSourceIsNull_ReturnsNull()
@@ -87,7 +87,7 @@ public class MaybeNull_Tests
 
     #endregion
 
-    #region Map(source, func, fallback)
+    #region Map(func, fallback)
 
     [Fact]
     public void MapWithFallback_NullSource_ReturnsFallback()
@@ -178,6 +178,70 @@ public class MaybeNull_Tests
         int actualInvocations = 0;
         string? result = source.Do(s => actualInvocations++);
         actualInvocations.ShouldBe(expectedInvocations);
+    }
+
+    #endregion
+
+    #region Do(action, fallback)
+
+    [Theory]
+    [InlineData(null, 0, 1)]
+    [InlineData("test", 1, 0)]
+    public void Do_WithFallback_CountActions(string? source, int expectedActionInvocations, int expectedFallbackInvocations)
+    {
+        int actualActionInvocations = 0;
+        int actualFallbackInvocations = 0;
+
+        var result = source.Do(s => actualActionInvocations++, () => actualFallbackInvocations++);
+
+        actualActionInvocations.ShouldBe(expectedActionInvocations);
+        actualFallbackInvocations.ShouldBe(expectedFallbackInvocations);
+        result.ShouldBeSameAs(source);
+    }
+
+    [Fact]
+    public void Do_WithFallback_NullAction_Throws()
+    {
+        string source = "test";
+        var action = () => source.Do(null!, () => { });
+        action.ShouldThrow<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Do_WithFallback_NullFallback_Throws()
+    {
+        string? source = null;
+        var action = () => source.Do(s => { }, null!);
+        action.ShouldThrow<ArgumentNullException>();
+    }
+
+    #endregion
+
+    #region If(predicate)
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("test", true)]
+    [InlineData("", false)]
+    public void If_Predicate_ReturnsSourceIfPredicateTrueElseNull(string? source, bool predicateResult)
+    {
+        var result = source.If(s => !string.IsNullOrEmpty(s));
+        if (predicateResult)
+        {
+            result.ShouldBe(source);
+        }
+        else
+        {
+            result.ShouldBeNull();
+        }
+    }
+
+    [Fact]
+    public void If_NullPredicate_Throws()
+    {
+        string source = "test";
+        var action = () => source.If(null!);
+        action.ShouldThrow<ArgumentNullException>();
     }
 
     #endregion
