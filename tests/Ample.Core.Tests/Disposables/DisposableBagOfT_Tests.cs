@@ -2,7 +2,7 @@
 
 namespace Ample.Core.Tests.Disposables;
 
-public class DisposableBafOfT_Tests
+public class DisposableBagOfT_Tests
 {
     #region Infrastructure
 
