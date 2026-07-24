@@ -43,11 +43,18 @@ namespace Ample.Core.Disposables;
 /// <remarks>
 /// Initializes a new instance of the <see cref="DisposableBag{T}"/> class.
 /// </remarks>
-/// <param name="value">The value to store in the bag.</param>
-public class DisposableBag<T>(T? value) : IDisposable
+public class DisposableBag<T> : IDisposable
 {
     private readonly Stack<Action> _actions = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DisposableBag{T}"/> class.
+    /// </summary>
+    /// <param name="value">The value to store in the bag.</param>
+    internal DisposableBag(T value)
+    {
+        Value = value;
+    }
 
     /// <summary>
     /// Adds a <see cref="Action"/> to the collection of actions which are executed when the container is disposed.
@@ -66,8 +73,7 @@ public class DisposableBag<T>(T? value) : IDisposable
     /// Gets the value stored in the bag.
     /// </summary>
     /// <value>The value stored in the bag.</value>
-    public T? Value { get; } = value;
-
+    public T Value { get; }
 
     #region IDisposable
 

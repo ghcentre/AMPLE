@@ -33,7 +33,7 @@ public class DisposableBag_Tests
     [Fact]
     public void Create_WithParameter_CreatesNonNull()
     {
-        var sut = DisposableBag.Create(42);
+        var sut = DisposableBag.For(42);
         sut.ShouldNotBeNull();
     }
 
@@ -44,7 +44,7 @@ public class DisposableBag_Tests
     [Fact]
     public void With_AnyArg_ReturnsSameBag()
     {
-        var sut = DisposableBag.Create(42);
+        var sut = DisposableBag.For(42);
         var actual = sut.With(() => { });
         actual.ShouldBe(sut);
     }
@@ -52,7 +52,7 @@ public class DisposableBag_Tests
     [Fact]
     public void With_Disposable_ReturnsSameBag()
     {
-        var sut = DisposableBag.Create(42);
+        var sut = DisposableBag.For(42);
         var disposable = new DisposableActionWrapper(() => { });
         var actual = sut.With(disposable);
         actual.ShouldBe(sut);

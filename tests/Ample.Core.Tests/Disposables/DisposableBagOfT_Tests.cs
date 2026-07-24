@@ -20,7 +20,7 @@ public class DisposableBagOfT_Tests
     public void Ctor_Value_SameReference()
     {
         var bagObject = new BagObject();
-        var sut = new DisposableBag<BagObject>(bagObject);
+        var sut = DisposableBag.For(bagObject);
 
         var actual = sut.Value;
 
@@ -30,7 +30,7 @@ public class DisposableBagOfT_Tests
     [Fact]
     public void Ctor_Null_AllowsNulls()
     {
-        var sut = new DisposableBag<string>(null);
+        var sut = DisposableBag.For((string?)null);
         var actual = sut.Value;
         actual.ShouldBeNull();
     }
@@ -43,7 +43,7 @@ public class DisposableBagOfT_Tests
     public void Add_Action_Executes()
     {
         void action() => _messages.Add("string");
-        var sut = new DisposableBag<string>(null);
+        var sut = DisposableBag.For((string?)null);
 
         sut.Add(action);
         sut.Dispose();
@@ -55,7 +55,7 @@ public class DisposableBagOfT_Tests
     public void Add_AfterDispose_Throws()
     {
         void action() => _messages.Add("string");
-        var sut = new DisposableBag<string>(null);
+        var sut = DisposableBag.For((string?)null);
 
         sut.Dispose();
 
@@ -70,7 +70,7 @@ public class DisposableBagOfT_Tests
     public void Dispose_ExecutedOnce()
     {
         void action() => _messages.Add("string");
-        var sut = new DisposableBag<string>(null);
+        var sut = DisposableBag.For((string?)null);
         sut.Add(action);
 
         sut.Dispose();
@@ -85,7 +85,7 @@ public class DisposableBagOfT_Tests
         void action1() => _messages.Add("1");
         void action2() => _messages.Add("2");
         void action3() => _messages.Add("3");
-        var sut = new DisposableBag<string>(null);
+        var sut = DisposableBag.For((string?)null);
         sut.Add(action1);
         sut.Add(action2);
         sut.Add(action3);
